@@ -1,25 +1,23 @@
 import { useState } from 'react';
 import Navigation from './components/Navigation';
 import { useBooks } from './hooks/useBooks';
+import BookListPage from './pages/BookListPage';
 
 export default function App() {
   const { books, loading, error } = useBooks();
   const [activePage, setActivePage] = useState('list');
   const [selectedBook, setSelectedBook] = useState(null);
 
-  // Callbacks for cross-page filter operations (S-3 → S-1)
-  const [selectedGenre, setSelectedGenre] = useState(null);
-  const [selectedSubgenre, setSelectedSubgenre] = useState(null);
-  const [selectedAuthor, setSelectedAuthor] = useState(null);
+  // Cross-page filter override: set by S-3, consumed by BookListPage
+  const [filterOverride, setFilterOverride] = useState(null);
 
   function handleFilterByGenre(genre) {
-    setSelectedGenre(genre);
-    setSelectedSubgenre(null);
+    setFilterOverride({ genre, subgenre: null });
     setActivePage('list');
   }
 
   function handleFilterByAuthor(author) {
-    setSelectedAuthor(author);
+    setFilterOverride({ author });
     setActivePage('list');
   }
 
@@ -50,7 +48,11 @@ export default function App() {
       <main className="max-w-6xl mx-auto px-4 py-4">
         <Navigation activePage={activePage} onPageChange={setActivePage} />
         {activePage === 'list' && (
-          <p className="text-gray-400 text-sm">書籍一覧（Phase B で実装）</p>
+          <BookListPage
+            books={books}
+            onSelectBook={setSelectedBook}
+            filterOverride={filterOverride}
+          />
         )}
         {activePage === 'stats' && (
           <p className="text-gray-400 text-sm">統計ダッシュボード（Phase D で実装）</p>
