@@ -1,102 +1,50 @@
-# 開発プロジェクトテンプレート 利用ガイド
+# Booklist
+
+Google Drive に保存した PDF ファイル名からメタデータを解析し、個人の蔵書カタログを生成・閲覧できるシステムです。
 
 ## 概要
 
-本テンプレートは、Claude Code を活用した GitHub Issue 起点の開発ワークフローを標準化するためのものです。
-新規プロジェクト開始時にコピー配置して利用します。
+約 1,900 件の PDF ファイル名を解析して正規化された蔵書データ（`data/books.json`）を生成し、静的 React SPA で検索・フィルタリング・閲覧を行います。
 
-## 利用手順
+## 技術スタック
 
-### 1. テンプレートのコピー
+| カテゴリ | 技術 |
+|---------|------|
+| フロントエンド | React (SPA) |
+| スタイリング | CSS / Tailwind CSS |
+| データ | JSON (`data/books.json`) |
+| データ処理 | Node.js スクリプト |
+| インフラ | 静的ホスティング（バックエンドなし） |
 
-本ディレクトリ（`docs/template/`）配下のファイルをプロジェクトルートにコピーします。
+## セットアップ
 
 ```bash
-# プロジェクトルートで実行
-cp -r docs/template/CLAUDE.md .
-cp -r docs/template/.claude .
-cp -r docs/template/.github .
-cp -r docs/template/docs/* docs/
+# 依存パッケージのインストール
+npm install
+
+# 蔵書データの生成（data/booklist.csv → data/books.json）
+node scripts/process.js
+
+# 開発サーバーの起動
+npm start
 ```
 
-> **注意**: 既存の `docs/` ディレクトリがある場合は、上書きに注意してください。
+## データフロー
 
-### 2. CLAUDE.md のカスタマイズ
+1. Google Apps Script で Google Drive の PDF ファイル一覧を CSV エクスポート（`data/booklist.csv`）
+2. `node scripts/process.js` で CSV を解析し `data/books.json` を生成
+3. React SPA が `data/books.json` を読み込んで表示
 
-`CLAUDE.md` 内のプレースホルダをプロジェクト固有の情報に置き換えます。
+> `data/books.json` は自動生成ファイルです。手動で編集せず、`process.js` で再生成してください。
 
-| プレースホルダ | 置き換え内容 |
-|----------------|-------------|
-| `{{PROJECT_NAME}}` | プロジェクト名 |
-| `{{PROJECT_DESCRIPTION}}` | プロジェクトの一文概要 |
-| `{{TECH_STACK}}` | 使用する技術スタック |
-| `{{DOCKER_SERVICE}}` | Docker Compose のサービス名 |
+## ドキュメント
 
-### 3. settings.local.json の追加設定
+詳細は [`docs/`](docs/) を参照してください。
 
-テンプレートには汎用コマンドのみが含まれています。必要に応じて以下を追加してください。
-
-- **プロジェクト固有パスを含むコマンド**: 例 `git -C /path/to/project status`
-- **WebFetch のドメイン制限**: プロジェクトで参照する外部サービスのドメイン
-
-### 4. GitHub Issue テンプレートの調整
-
-`.github/ISSUE_TEMPLATE/bug_report.yml` の「発生環境」ドロップダウンの選択肢を、プロジェクトの環境に合わせて変更してください。
-
-### 5. ドキュメントの作成
-
-以下のドキュメントをプロジェクトに合わせて記入します（各ファイルにガイドコメントがあります）。
-
-**要件定義段階**:
-- `docs/requirements/` - 課題定義、仕様検討、要件定義
-
-**アプリケーション仕様**:
-- `docs/app/overview.md` - プロジェクト概要
-- `docs/app/architecture.md` - アーキテクチャ
-- `docs/app/database.md` - DB設計
-
-**開発環境**:
-- `docs/dev/setup.md` - 環境構築手順（Claude Code 向け・英語）
-- `docs/dev/setup_user_guidance.md` - 環境構築ガイダンス（ユーザー向け・日本語）
-
-## テンプレート構成
-
-```
-CLAUDE.md                           プロジェクトガイド（要カスタマイズ）
-.claude/
-  settings.local.json               Permission設定
-  skills/
-    design-doc/SKILL.md             設計書作成スキル
-    implement/SKILL.md              実装スキル
-    commit/SKILL.md                 コミットスキル
-    review/SKILL.md                 レビュースキル
-.github/
-  ISSUE_TEMPLATE/
-    bug_report.yml                  バグ報告テンプレート
-    feature_request.yml             機能要望テンプレート
-    config.yml                      ブランクIssue許可
-  pull_request_template.md          PRテンプレート
-docs/
-  README.md                        ドキュメントインデックス
-  requirements/                    要件定義
-  app/
-    overview.md                    プロジェクト概要
-    architecture.md                アーキテクチャ
-    database.md                    DB設計
-    design/                        Issue別設計書
-    spec/
-      functional/                  機能仕様
-      system/                      システム仕様
-  dev/
-    setup.md                       環境構築手順（Claude Code向け）
-    setup_user_guidance.md         環境構築ガイダンス（ユーザー向け）
-    workflow.md                    開発ワークフロー（Claude Code向け）
-    workflow_user_guidance.md      開発操作ガイダンス（ユーザー向け）
-```
-
-## 言語ポリシー
-
-| 対象読者 | 言語 | 対象ファイル |
-|---------|------|-------------|
-| Claude Code | 英語 | CLAUDE.md, skills/, workflow.md, setup.md, PR template |
-| ユーザー（開発者） | 日本語 | Issue templates, docs/app/, docs/requirements/, user_guidance |
+| ドキュメント | パス |
+|------------|------|
+| プロジェクト概要 | `docs/app/overview.md` |
+| アーキテクチャ | `docs/app/architecture.md` |
+| 要件定義 | `docs/requirements/` |
+| 環境構築ガイド | `docs/dev/setup_user_guidance.md` |
+| 開発操作ガイド | `docs/dev/workflow_user_guidance.md` |
