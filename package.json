@@ -1,0 +1,12 @@
+{
+  "name": "booklist",
+  "version": "1.0.0",
+  "description": "Personal book catalog system",
+  "scripts": {
+    "process": "node scripts/process.js",
+    "test": "node --test scripts/process.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
