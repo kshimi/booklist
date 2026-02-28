@@ -43,8 +43,8 @@ PC または iPad のブラウザ
 
 | カテゴリ | 技術 | バージョン |
 |---------|------|-----------|
-| フロントエンド | React（SPA） | — |
-| スタイリング | 未定（CSS / Tailwind CSS 等） | — |
+| フロントエンド | React（SPA）+ Vite | — |
+| スタイリング | Tailwind CSS | — |
 | データ形式 | JSON（`data/books.json`） | — |
 | データ処理 | Claude Code（Node.js スクリプト） | — |
 | インフラ | ローカルファイル / 静的ホスティング | — |

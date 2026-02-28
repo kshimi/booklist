@@ -40,7 +40,8 @@ React の `useState` / `useReducer` のみで管理する。
 | 状態名 | 型 | 初期値 | 説明 |
 |--------|-----|--------|------|
 | `keyword` | string | `''` | キーワード検索入力値 |
-| `selectedGenre` | string \| null | `null` | 選択中のジャンル。`null` は「すべて」 |
+| `selectedGenre` | string \| null | `null` | 選択中の大ジャンル。`null` は「すべて」 |
+| `selectedSubgenre` | string \| null | `null` | 選択中のサブジャンル。`null` は「すべて」。`selectedGenre` が `null` のときは常に `null` |
 | `selectedAuthor` | string \| null | `null` | 選択中の著者名。`null` は「すべて」 |
 | `sortKey` | `'title'` \| `'author'` \| `'pages'` | `'title'` | ソートキー |
 | `sortOrder` | `'asc'` \| `'desc'` | `'asc'` | ソート方向 |
@@ -58,8 +59,9 @@ const filteredBooks = useMemo(() => {
   return books
     .filter(book => matchKeyword(book, keyword))
     .filter(book => !selectedGenre || book.genre === selectedGenre)
+    .filter(book => !selectedSubgenre || (book.subgenre ?? 'その他') === selectedSubgenre)
     .filter(book => !selectedAuthor || book.author === selectedAuthor);
-}, [books, keyword, selectedGenre, selectedAuthor]);
+}, [books, keyword, selectedGenre, selectedSubgenre, selectedAuthor]);
 
 // ソート済み書籍リスト
 const sortedBooks = useMemo(() => {
@@ -91,9 +93,11 @@ const totalCount = filteredBooks.length;
 
 | トリガー | 処理 |
 |---------|------|
-| GenreFilter のボタンクリック | `selectedGenre` を更新、`currentPage` を `1` にリセット |
-| 「すべて」クリック | `selectedGenre` を `null` に更新 |
-| GenreChart（S-3）のジャンルクリック | `selectedGenre` を更新、`activePage` を `'list'` に切り替え、`currentPage` を `1` にリセット |
+| GenreFilter の大ジャンルボタンクリック | `selectedGenre` を更新、`selectedSubgenre` を `null` にリセット、`currentPage` を `1` にリセット |
+| GenreFilter の大ジャンル「すべて」クリック | `selectedGenre` を `null` に更新、`selectedSubgenre` を `null` にリセット |
+| GenreFilter のサブジャンルボタンクリック | `selectedSubgenre` を更新、`currentPage` を `1` にリセット |
+| GenreFilter のサブジャンル「すべて」クリック | `selectedSubgenre` を `null` に更新 |
+| GenreChart（S-3）のジャンルクリック | `selectedGenre` を更新、`selectedSubgenre` を `null` にリセット、`activePage` を `'list'` に切り替え、`currentPage` を `1` にリセット |
 
 ### 著者絞り込み
 

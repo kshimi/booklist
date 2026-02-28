@@ -8,8 +8,8 @@ Personal book catalog system. Parses metadata from ~1,900 Google Drive PDF filen
 
 | Category | Technology |
 |----------|-----------|
-| Frontend | React (SPA) |
-| Styling | CSS / Tailwind CSS (TBD) |
+| Frontend | React (SPA) + Vite |
+| Styling | Tailwind CSS |
 | Data | JSON (`data/books.json`) |
 | Data Processing | Node.js scripts |
 | Infrastructure | Static hosting (no backend server) |
