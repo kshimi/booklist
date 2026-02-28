@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import {
   BarChart,
   Bar,
@@ -17,11 +18,17 @@ const BAR_HOVER_COLOR = '#1d4ed8';
  * Props: genreStats ({ [genre]: count }), onSelectGenre (genre: string) => void
  */
 export default function GenreChart({ genreStats, onSelectGenre }) {
-  const data = Object.entries(genreStats)
-    .map(([genre, count]) => ({ genre, count }))
-    .sort((a, b) => b.count - a.count);
+  const [hoveredGenre, setHoveredGenre] = useState(null);
 
-  const total = data.reduce((sum, d) => sum + d.count, 0);
+  const data = useMemo(
+    () =>
+      Object.entries(genreStats)
+        .map(([genre, count]) => ({ genre, count }))
+        .sort((a, b) => b.count - a.count),
+    [genreStats],
+  );
+
+  const total = useMemo(() => data.reduce((sum, d) => sum + d.count, 0), [data]);
 
   return (
     <div>
@@ -55,9 +62,9 @@ export default function GenreChart({ genreStats, onSelectGenre }) {
               {data.map((entry) => (
                 <Cell
                   key={entry.genre}
-                  fill={BAR_COLOR}
-                  onMouseEnter={(e) => { e.target.setAttribute('fill', BAR_HOVER_COLOR); }}
-                  onMouseLeave={(e) => { e.target.setAttribute('fill', BAR_COLOR); }}
+                  fill={hoveredGenre === entry.genre ? BAR_HOVER_COLOR : BAR_COLOR}
+                  onMouseEnter={() => setHoveredGenre(entry.genre)}
+                  onMouseLeave={() => setHoveredGenre(null)}
                 />
               ))}
             </Bar>

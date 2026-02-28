@@ -166,6 +166,10 @@ If the developer requests changes after review:
 | ResultSummary | `src/components/ResultSummary.jsx` | Filtered result count display |
 | BookGrid | `src/components/BookGrid.jsx` | Book card grid layout |
 | BookCard | `src/components/BookCard.jsx` | Individual book display card |
+| StatsDashboardPage | `src/pages/StatsDashboardPage.jsx` | S-3 stats dashboard orchestration |
+| GenreChart | `src/components/GenreChart.jsx` | F-12 genre bar chart (recharts) |
+| AuthorRanking | `src/components/AuthorRanking.jsx` | F-13 author ranking table |
+| AuthorRankingRow | `src/components/AuthorRankingRow.jsx` | Single row in author ranking table |
 
 ### UI Feature Spec
 
@@ -177,4 +181,4 @@ Refer to `docs/app/spec/functional/ui-features.md` for UI feature definitions (F
 |--------|--------|---------------------|
 | S-1: Book List | Complete | F-5 search, F-6 genre filter, F-7 author filter, F-8 sort, F-9 pagination |
 | S-2: Book Detail | Complete | F-10 basic info, F-11 external API enrichment |
-| S-3: Statistics Dashboard | Not started | F-12 genre stats, F-13 author ranking |
+| S-3: Statistics Dashboard | Complete | F-12 genre stats, F-13 author ranking |
