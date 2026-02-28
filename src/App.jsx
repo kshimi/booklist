@@ -3,6 +3,7 @@ import Navigation from './components/Navigation';
 import { useBooks } from './hooks/useBooks';
 import BookListPage from './pages/BookListPage';
 import BookDetailPage from './pages/BookDetailPage';
+import StatsDashboardPage from './pages/StatsDashboardPage';
 
 export default function App() {
   const { books, loading, error } = useBooks();
@@ -56,7 +57,11 @@ export default function App() {
           />
         )}
         {activePage === 'stats' && (
-          <p className="text-gray-400 text-sm">統計ダッシュボード（Phase D で実装）</p>
+          <StatsDashboardPage
+            books={books}
+            onFilterByGenre={handleFilterByGenre}
+            onFilterByAuthor={handleFilterByAuthor}
+          />
         )}
       </main>
 
