@@ -172,7 +172,7 @@ git branch -d <branch-name>
 UIに関わるPRをレビューする際は、開発サーバーを起動して以下の動作を確認してください。
 
 ```bash
-npm start
+npm run dev
 ```
 
 ### 書籍一覧（S-1）の動作確認
