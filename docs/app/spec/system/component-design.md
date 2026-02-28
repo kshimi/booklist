@@ -6,6 +6,9 @@
 
 ---
 
+> 機能要件は [`docs/app/spec/functional/ui-features.md`](../functional/ui-features.md) を参照。
+> 本ドキュメントは実装設計（HOW）を定義する。
+
 ## 1. コンポーネント階層
 
 ```

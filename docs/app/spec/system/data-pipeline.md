@@ -6,6 +6,9 @@
 
 ---
 
+> 機能要件は [`docs/app/spec/functional/data-processing.md`](../functional/data-processing.md) を参照。
+> 本ドキュメントは実装設計（HOW）を定義する。
+
 ## 1. 概要
 
 データパイプラインはビルド前工程として Node.js スクリプト（`scripts/process.js`）で実行する。

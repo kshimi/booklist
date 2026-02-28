@@ -6,6 +6,9 @@
 
 ---
 
+> 機能要件は [`docs/app/spec/functional/ui-features.md`](../functional/ui-features.md) F-11 を参照。
+> 本ドキュメントは実装設計（HOW）を定義する。
+
 ## 1. 概要
 
 書籍詳細画面（S-2）において、ISBNが存在する書籍に対して外部書誌APIから補完情報（表紙・出版社・出版年・内容紹介）を取得する。

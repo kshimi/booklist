@@ -6,6 +6,9 @@
 
 ---
 
+> 機能要件は [`docs/app/spec/functional/ui-features.md`](../functional/ui-features.md) を参照。
+> 本ドキュメントは実装設計（HOW）を定義する。
+
 ## 1. 方針
 
 819件の静的データを扱うシンプルな SPA のため、Redux 等の外部状態管理ライブラリは使用しない。
