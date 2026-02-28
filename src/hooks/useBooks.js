@@ -6,7 +6,8 @@ export function useBooks() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('./data/books.json')
+    const controller = new AbortController();
+    fetch('./data/books.json', { signal: controller.signal })
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -16,9 +17,12 @@ export function useBooks() {
         setLoading(false);
       })
       .catch(err => {
-        setError(err.message);
-        setLoading(false);
+        if (err.name !== 'AbortError') {
+          setError(err.message);
+          setLoading(false);
+        }
       });
+    return () => controller.abort();
   }, []);
 
   return { books, loading, error };
