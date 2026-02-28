@@ -148,3 +148,33 @@ If the developer requests changes after review:
 - Functional specifications → `docs/app/spec/functional/`
 - System specifications → `docs/app/spec/system/`
 - Specifications should reflect system-wide design decisions, not issue-specific details
+
+## UI Component Reference
+
+### Component Structure
+
+| Component | Path | Feature |
+|-----------|------|---------|
+| App | `src/App.jsx` | Root; page routing, cross-page filter state |
+| Navigation | `src/components/Navigation.jsx` | Tab navigation between pages |
+| BookListPage | `src/pages/BookListPage.jsx` | S-1 orchestration (search, filter, sort, pagination) |
+| SearchBar | `src/components/SearchBar.jsx` | F-5 keyword search input |
+| GenreFilter | `src/components/GenreFilter.jsx` | F-6 two-level genre filter |
+| AuthorFilter | `src/components/AuthorFilter.jsx` | F-7 author dropdown filter |
+| SortControl | `src/components/SortControl.jsx` | F-8 sort key and order selection |
+| Pagination | `src/components/Pagination.jsx` | F-9 page navigation |
+| ResultSummary | `src/components/ResultSummary.jsx` | Filtered result count display |
+| BookGrid | `src/components/BookGrid.jsx` | Book card grid layout |
+| BookCard | `src/components/BookCard.jsx` | Individual book display card |
+
+### UI Feature Spec
+
+Refer to `docs/app/spec/functional/ui-features.md` for UI feature definitions (F-5 through F-13).
+
+### Implementation Status
+
+| Screen | Status | Implemented Features |
+|--------|--------|---------------------|
+| S-1: Book List | Complete | F-5 search, F-6 genre filter, F-7 author filter, F-8 sort, F-9 pagination |
+| S-2: Book Detail | Not started | F-10 basic info, F-11 external API enrichment |
+| S-3: Statistics Dashboard | Not started | F-12 genre stats, F-13 author ranking |
