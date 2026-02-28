@@ -32,6 +32,64 @@ const GENRE_PRIORITY = {
   '未分類': 0,
 };
 
+// Fallback genre rules for books unclassified by folder path.
+// Applied to title + author + series text when folder-based inference returns 未分類.
+const GENRE_FALLBACK_RULES = [
+  {
+    test: (t) => /人工知能|アルゴリズム|プログラム|コンピュータ|Mathematics|Knuth/.test(t),
+    genre: 'コンピュータ',
+  },
+  {
+    test: (t) => /物理|量子|相対性|宇宙|進化|生物|化学|科学|数学|幾何|統計/.test(t),
+    genre: 'ノンフィクション',
+  },
+  {
+    test: (t) => /哲学|思想|倫理|道徳|心理|精神分析|論理|形而上/.test(t),
+    genre: 'ノンフィクション',
+  },
+  {
+    test: (t) => /自伝|自叙伝|伝記|生涯|回顧録|回想録/.test(t),
+    genre: 'ノンフィクション',
+  },
+  {
+    test: (t) => /経済|政治|社会|資本|投資|法律|宗教|仏教|神学/.test(t),
+    genre: 'ノンフィクション',
+  },
+  {
+    test: (t) => /神話|伝説|民話|民俗|説話/.test(t),
+    genre: 'ノンフィクション',
+  },
+  {
+    test: (t) => /日記|手紙|書簡|巡礼|散歩|紀行|旅日記/.test(t),
+    genre: 'エッセイ',
+  },
+  {
+    test: (t) => /童謡|詩集|俳句|和歌|百人一首|古事記|源氏物語|万葉/.test(t),
+    genre: 'フィクション（日本）',
+  },
+];
+
+// Subgenre rules applied after genre assignment.
+// Each rule targets a specific genre and infers a subgenre from title + author + series.
+const SUBGENRE_RULES = {
+  'フィクション': [
+    { test: (t) => /ミステリ|探偵|殺人|推理|犯罪/.test(t), subgenre: 'ミステリー' },
+    { test: () => true, subgenre: 'その他フィクション' },
+  ],
+  'フィクション（日本）': [
+    { test: (t) => /ミステリ|探偵|殺人|推理|犯罪/.test(t), subgenre: 'ミステリー' },
+    { test: (t) => /時代|幕末|江戸|侍|武士|戦国|忍者|剣客/.test(t), subgenre: '歴史・時代' },
+    { test: () => true, subgenre: 'その他フィクション' },
+  ],
+  'ノンフィクション': [
+    { test: (t) => /物理|量子|相対性|宇宙|進化|生物|化学|科学|数学|幾何|統計/.test(t), subgenre: '科学・技術' },
+    { test: (t) => /哲学|思想|倫理|道徳|心理|精神分析|論理|形而上/.test(t), subgenre: '哲学・思想' },
+    { test: (t) => /歴史|自伝|自叙伝|伝記|生涯|回顧録|回想録|評伝/.test(t), subgenre: '歴史・伝記' },
+    { test: (t) => /経済|政治|社会|資本|投資|法律/.test(t), subgenre: '社会・経済' },
+    { test: () => true, subgenre: 'その他ノンフィクション' },
+  ],
+};
+
 /**
  * Parse CSV text into an array of row objects.
  * Handles quoted fields containing commas and newlines.
@@ -187,12 +245,31 @@ function parseFilename(filename) {
 
 /**
  * Estimate genre from folder path using priority-ordered keyword matching.
+ * Falls back to title/author/series keyword matching when folder path yields 未分類.
  */
-function estimateGenre(folderPath) {
+function estimateGenre(folderPath, title = '', author = '', series = '') {
   for (const rule of GENRE_RULES) {
     if (rule.test(folderPath)) return rule.genre;
   }
+  const text = title + ' ' + author + ' ' + (series || '');
+  for (const rule of GENRE_FALLBACK_RULES) {
+    if (rule.test(text)) return rule.genre;
+  }
   return '未分類';
+}
+
+/**
+ * Estimate subgenre from title, author, series based on the assigned genre.
+ * Returns null for genres that have no subgenre rules defined.
+ */
+function estimateSubgenre(genre, title, author, series) {
+  const rules = SUBGENRE_RULES[genre];
+  if (!rules) return null;
+  const text = title + ' ' + author + ' ' + (series || '');
+  for (const rule of rules) {
+    if (rule.test(text)) return rule.subgenre;
+  }
+  return null;
 }
 
 /**
@@ -223,10 +300,13 @@ function deduplicateBooks(files) {
     const isbn = group.find(f => f.isbn !== null)?.isbn ?? null;
     const pages = group.find(f => f.pages !== null)?.pages ?? null;
 
+    const subgenre = estimateSubgenre(bestGenre, original.title, original.author, original.series);
+
     books.push({
       title: original.title,
       author: original.author,
       genre: bestGenre,
+      subgenre,
       series: original.series,
       isbn,
       pages,
@@ -268,7 +348,7 @@ function main() {
 
   const files = filtered.map(row => {
     const parsed = parseFilename(row['ファイル名'] || '');
-    const genre = estimateGenre(row['フォルダパス'] || '');
+    const genre = estimateGenre(row['フォルダパス'] || '', parsed.title, parsed.author, parsed.series);
     return {
       ...parsed,
       genre,
@@ -288,6 +368,7 @@ function main() {
     title: book.title,
     author: book.author,
     genre: book.genre,
+    subgenre: book.subgenre,
     series: book.series,
     isbn: book.isbn,
     pages: book.pages,
@@ -307,7 +388,7 @@ function main() {
   console.log(`  出力ファイル: data/books.json`);
 }
 
-module.exports = { parseCSV, filterRecords, parseFilename, estimateGenre, deduplicateBooks, generateId };
+module.exports = { parseCSV, filterRecords, parseFilename, estimateGenre, estimateSubgenre, deduplicateBooks, generateId };
 
 if (require.main === module) {
   main();
