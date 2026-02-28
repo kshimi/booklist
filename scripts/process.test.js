@@ -10,6 +10,7 @@ const {
   filterRecords,
   parseFilename,
   estimateGenre,
+  estimateSubgenre,
   deduplicateBooks,
   generateId,
 } = require('./process.js');
@@ -103,8 +104,28 @@ describe('estimateGenre', () => {
     assert.equal(estimateGenre('70_Book / 日本の作家'), 'フィクション（日本）');
   });
 
-  test('T-15: no keyword match → 未分類', () => {
-    assert.equal(estimateGenre('70_Book'), '未分類');
+  test('T-15: no keyword match in folder or title → 未分類', () => {
+    assert.equal(estimateGenre('70_Book', '無題', '著者', null), '未分類');
+  });
+
+  test('T-16: fallback to コンピュータ via title keyword 人工知能', () => {
+    assert.equal(estimateGenre('70_Book', '人工知能概論', '著者', null), 'コンピュータ');
+  });
+
+  test('T-17: fallback to ノンフィクション via title keyword 自伝', () => {
+    assert.equal(estimateGenre('70_Book', 'フランクリン自伝', 'フランクリン', '岩波文庫'), 'ノンフィクション');
+  });
+
+  test('T-18: fallback to エッセイ via title keyword 日記', () => {
+    assert.equal(estimateGenre('70_Book', 'アンネの日記', 'アンネ・フランク', '文春文庫'), 'エッセイ');
+  });
+
+  test('T-19: fallback to フィクション（日本）via title keyword 百人一首', () => {
+    assert.equal(estimateGenre('70_Book', '小倉百人一首', '', null), 'フィクション（日本）');
+  });
+
+  test('folder path match takes precedence over fallback', () => {
+    assert.equal(estimateGenre('70_Book / フィクション', '自伝', '著者', null), 'フィクション');
   });
 
   test('エッセイ path', () => {
@@ -121,6 +142,60 @@ describe('estimateGenre', () => {
 
   test('運転関係 path', () => {
     assert.equal(estimateGenre('70_Book / 運転関係'), '運転');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// estimateSubgenre
+// ---------------------------------------------------------------------------
+
+describe('estimateSubgenre', () => {
+  test('T-50: フィクション title containing 探偵 → ミステリー', () => {
+    assert.equal(estimateSubgenre('フィクション', '名探偵の帰還', 'コナン', null), 'ミステリー');
+  });
+
+  test('T-51: フィクション non-mystery title → その他フィクション', () => {
+    assert.equal(estimateSubgenre('フィクション', 'ある婦人の肖像', 'ジェイムズ', null), 'その他フィクション');
+  });
+
+  test('T-52: フィクション（日本）title containing 推理 → ミステリー', () => {
+    assert.equal(estimateSubgenre('フィクション（日本）', '推理小説集', '著者', null), 'ミステリー');
+  });
+
+  test('T-53: フィクション（日本）historical title → 歴史・時代', () => {
+    assert.equal(estimateSubgenre('フィクション（日本）', '幕末の武士道', '著者', null), '歴史・時代');
+  });
+
+  test('T-54: フィクション（日本）plain title → その他フィクション', () => {
+    assert.equal(estimateSubgenre('フィクション（日本）', 'きりぎりす', '太宰 治', null), 'その他フィクション');
+  });
+
+  test('T-55: ノンフィクション title containing 科学 → 科学・技術', () => {
+    assert.equal(estimateSubgenre('ノンフィクション', '科学は不確かだ！', 'ファインマン', null), '科学・技術');
+  });
+
+  test('T-56: ノンフィクション title containing 哲学 → 哲学・思想', () => {
+    assert.equal(estimateSubgenre('ノンフィクション', '哲学入門', '著者', null), '哲学・思想');
+  });
+
+  test('T-57: ノンフィクション biography title → 歴史・伝記', () => {
+    assert.equal(estimateSubgenre('ノンフィクション', 'フランクリン自伝', 'フランクリン', null), '歴史・伝記');
+  });
+
+  test('T-58: ノンフィクション social title → 社会・経済', () => {
+    assert.equal(estimateSubgenre('ノンフィクション', '資本主義の終焉', '著者', null), '社会・経済');
+  });
+
+  test('T-59: ノンフィクション uncategorized → その他ノンフィクション', () => {
+    assert.equal(estimateSubgenre('ノンフィクション', '旅の日々', '著者', null), 'その他ノンフィクション');
+  });
+
+  test('T-60: SF has no subgenre rules → null', () => {
+    assert.equal(estimateSubgenre('SF', '夏への扉', '著者', null), null);
+  });
+
+  test('T-61: エッセイ has no subgenre rules → null', () => {
+    assert.equal(estimateSubgenre('エッセイ', '旅日記', '著者', null), null);
   });
 });
 
@@ -189,6 +264,18 @@ describe('deduplicateBooks', () => {
       ...overrides,
     };
   }
+
+  test('T-34: merged book has subgenre derived from genre and title', () => {
+    const files = [makeFile({ genre: 'ノンフィクション', title: '科学の世界', isbn: '9784101020112' })];
+    const books = deduplicateBooks(files);
+    assert.equal(books[0].subgenre, '科学・技術');
+  });
+
+  test('T-35: merged book with SF genre has null subgenre', () => {
+    const files = [makeFile({ genre: 'SF', title: '宇宙SF大全' })];
+    const books = deduplicateBooks(files);
+    assert.equal(books[0].subgenre, null);
+  });
 
   test('T-30: merges same-ISBN books into one record with both versions', () => {
     const files = [
@@ -314,7 +401,7 @@ describe('Integration', () => {
     const filtered = filterRecords(rows);
     const files = filtered.map(row => {
       const parsed = parseFilename(row['ファイル名'] || '');
-      const genre = estimateGenre(row['フォルダパス'] || '');
+      const genre = estimateGenre(row['フォルダパス'] || '', parsed.title, parsed.author, parsed.series);
       return {
         ...parsed,
         genre,
@@ -343,8 +430,16 @@ describe('Integration', () => {
       assert.ok(typeof book.title === 'string', 'title must be a string');
       assert.ok(typeof book.author === 'string', 'author must be a string');
       assert.ok(typeof book.genre === 'string', 'genre must be a string');
+      assert.ok(book.subgenre === null || typeof book.subgenre === 'string', 'subgenre must be string or null');
       assert.ok(Array.isArray(book.versions) && book.versions.length > 0, 'versions must be non-empty array');
     }
+  });
+
+  test('T-43: 未分類 books are fewer than before fallback inference (baseline: 64)', () => {
+    if (!csvExists) return;
+    const books = loadBooks();
+    const unclassified = books.filter(b => b.genre === '未分類').length;
+    assert.ok(unclassified < 64, `Expected fewer than 64 未分類 books, got ${unclassified}`);
   });
 
   test('T-42: no duplicate IDs in generated output', () => {
