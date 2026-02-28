@@ -90,22 +90,30 @@ export function useExternalBookData(isbn) {
     setData(null);
 
     (async () => {
+      let result = null;
       try {
-        let result = await fetchOpenBD(isbn);
-        if (!result) {
-          result = await fetchGoogleBooks(isbn);
-        }
-        if (cancelled) return;
-        if (result) {
-          cache.set(isbn, result);
-          setData(result);
-          setStatus('loaded');
-        } else {
-          cache.set(isbn, 'not_found');
-          setStatus('not_found');
-        }
+        result = await fetchOpenBD(isbn);
       } catch {
-        if (!cancelled) setStatus('error');
+        // OpenBD failed — fall through to Google Books
+      }
+
+      if (!result) {
+        try {
+          result = await fetchGoogleBooks(isbn);
+        } catch {
+          if (!cancelled) setStatus('error');
+          return;
+        }
+      }
+
+      if (cancelled) return;
+      if (result) {
+        cache.set(isbn, result);
+        setData(result);
+        setStatus('loaded');
+      } else {
+        cache.set(isbn, 'not_found');
+        setStatus('not_found');
       }
     })();
 

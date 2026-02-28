@@ -176,5 +176,5 @@ Refer to `docs/app/spec/functional/ui-features.md` for UI feature definitions (F
 | Screen | Status | Implemented Features |
 |--------|--------|---------------------|
 | S-1: Book List | Complete | F-5 search, F-6 genre filter, F-7 author filter, F-8 sort, F-9 pagination |
-| S-2: Book Detail | Not started | F-10 basic info, F-11 external API enrichment |
+| S-2: Book Detail | Complete | F-10 basic info, F-11 external API enrichment |
 | S-3: Statistics Dashboard | Not started | F-12 genre stats, F-13 author ranking |
