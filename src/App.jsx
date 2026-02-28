@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Navigation from './components/Navigation';
 import { useBooks } from './hooks/useBooks';
 import BookListPage from './pages/BookListPage';
+import BookDetailPage from './pages/BookDetailPage';
 
 export default function App() {
   const { books, loading, error } = useBooks();
@@ -58,6 +59,19 @@ export default function App() {
           <p className="text-gray-400 text-sm">統計ダッシュボード（Phase D で実装）</p>
         )}
       </main>
+
+      {/* S-2: Book detail modal */}
+      {selectedBook && (
+        <BookDetailPage
+          book={selectedBook}
+          onClose={() => setSelectedBook(null)}
+          onSelectAuthor={author => {
+            setFilterOverride({ author });
+            setActivePage('list');
+            setSelectedBook(null);
+          }}
+        />
+      )}
     </div>
   );
 }
