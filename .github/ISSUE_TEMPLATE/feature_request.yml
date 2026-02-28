@@ -1,0 +1,34 @@
+name: 機能要望
+description: 新しい機能やの改善の提案
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: 概要
+      description: 要望する機能の概要を記述してください
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: 背景・動機
+      description: この機能が必要な理由や背景を記述してください
+  - type: textarea
+    id: image
+    attributes:
+      label: 実現イメージ
+      description: どのように実現されるべきかのイメージを記述してください
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 優先度
+      options:
+        - 高
+        - 中
+        - 低
+  - type: textarea
+    id: notes
+    attributes:
+      label: 備考
+      description: その他の情報や参考資料

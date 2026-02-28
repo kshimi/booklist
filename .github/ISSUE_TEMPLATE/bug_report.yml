@@ -1,0 +1,41 @@
+name: バグ報告
+description: バグや不具合の報告
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: バグの内容
+      description: 発生しているバグの内容を記述してください
+      placeholder: どのような問題が発生していますか？
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現手順
+      description: バグを再現する手順を記述してください
+      placeholder: |
+        1. '...' に移動
+        2. '...' をクリック
+        3. '...' を入力
+        4. エラーが発生
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する動作
+      description: 本来どのように動作すべきかを記述してください
+  - type: dropdown
+    id: environment
+    attributes:
+      label: 発生環境
+      description: バグが発生した環境を選択してください
+      options:
+        - 開発環境（ローカル）
+        - ステージング環境
+        - 本番環境
+  - type: textarea
+    id: notes
+    attributes:
+      label: 備考
+      description: その他の情報（スクリーンショット、ログなど）
