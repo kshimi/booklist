@@ -1,17 +1,18 @@
-# {{PROJECT_NAME}}
+# Booklist
 
 ## Project Overview
 
-{{PROJECT_DESCRIPTION}}
+Personal book catalog system. Parses metadata from ~1,900 Google Drive PDF filenames, generates a normalized book catalog (`data/books.json`), and provides a static React SPA for searching, filtering, and browsing 819 unique books.
 
 ### Tech Stack
 
 | Category | Technology |
 |----------|-----------|
-| Frontend | {{TECH_STACK}} |
-| Backend | {{TECH_STACK}} |
-| Database | {{TECH_STACK}} |
-| Infrastructure | Docker Compose |
+| Frontend | React (SPA) |
+| Styling | CSS / Tailwind CSS (TBD) |
+| Data | JSON (`data/books.json`) |
+| Data Processing | Node.js scripts |
+| Infrastructure | Static hosting (no backend server) |
 
 ## Language Policy
 
@@ -39,23 +40,33 @@
 
 ## Development Environment
 
-### Docker Commands
+### Commands
 
 ```bash
-# Start development environment
-docker compose up -d
+# Install dependencies
+npm install
+
+# Generate books.json from CSV (data processing pipeline)
+node scripts/process.js
+
+# Start development server
+npm start
 
 # Run tests
-docker compose exec {{DOCKER_SERVICE}} npm test
+npm test
 
 # Run linter
-docker compose exec {{DOCKER_SERVICE}} npm run lint
+npm run lint
+
+# Build for production
+npm run build
 ```
 
 ### Important Notes
 
-- Do NOT install Node.js packages locally; always use Docker
-- Run all commands inside Docker containers
+- Input data: `data/booklist.csv` (exported from Google Drive via Google Apps Script)
+- Generated catalog: `data/books.json` (do not edit manually; regenerate via `process.js`)
+- No backend server — all runtime logic runs in the browser
 
 ## Workflow Reference
 
@@ -69,11 +80,9 @@ Always follow the workflow defined there.
 |----------|------|-------------|
 | Workflow (Claude Code) | `docs/dev/workflow.md` | Development workflow rules |
 | Setup (Claude Code) | `docs/dev/setup.md` | Environment setup procedure |
-| Architecture | `docs/app/architecture.md` | System architecture |
-| Database | `docs/app/database.md` | Database design |
+| Architecture | `docs/app/architecture.md` | System architecture and books.json schema |
 | Design Documents | `docs/app/design/` | Per-issue design documents |
 | Functional Spec | `docs/app/spec/functional/` | Functional specifications |
-| System Spec | `docs/app/spec/system/` | System specifications |
 | Requirements | `docs/requirements/` | Requirements definition |
 
 ## Project Principles
