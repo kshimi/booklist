@@ -9,6 +9,7 @@ export function calcGenreStats(books) {
 /** Calculate author ranking by book count (top N) */
 export function calcAuthorRanking(books, topN = 20) {
   const counts = books.reduce((acc, book) => {
+    if (!book.author) return acc;
     if (!acc[book.author]) acc[book.author] = { count: 0, genres: {} };
     acc[book.author].count += 1;
     acc[book.author].genres[book.genre] = (acc[book.author].genres[book.genre] ?? 0) + 1;

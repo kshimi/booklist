@@ -23,12 +23,15 @@ export default function BookListPage({ books, onSelectBook, filterOverride }) {
   const [sortOrder, setSortOrder] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Apply external filter overrides (from S-3 chart/ranking clicks)
+  // Apply external filter overrides (from S-3 chart/ranking clicks).
+  // Reset all filters first so unrelated state (keyword, author, genre) doesn't
+  // silently narrow results alongside the incoming override.
   useEffect(() => {
     if (!filterOverride) return;
-    if ('genre' in filterOverride) setSelectedGenre(filterOverride.genre);
-    if ('subgenre' in filterOverride) setSelectedSubgenre(filterOverride.subgenre);
-    if ('author' in filterOverride) setSelectedAuthor(filterOverride.author);
+    setKeyword('');
+    setSelectedGenre(filterOverride.genre ?? null);
+    setSelectedSubgenre(filterOverride.subgenre ?? null);
+    setSelectedAuthor(filterOverride.author ?? null);
     setCurrentPage(1);
   }, [filterOverride]);
 
