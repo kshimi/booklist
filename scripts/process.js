@@ -262,13 +262,9 @@ function main() {
   const csvText = fs.readFileSync(csvPath, 'utf-8');
   const rows = parseCSV(csvText);
 
-  const pdfRows = rows.filter(r => r['MIME タイプ'] === 'application/pdf');
-  const nonPdfCount = rows.length - pdfRows.length;
-  const managementCount = pdfRows.filter(r =>
-    EXCLUDED_NAMES.some(n => (r['ファイル名'] || '').includes(n))
-  ).length;
-
   const filtered = filterRecords(rows);
+  const nonPdfCount = rows.filter(r => r['MIME タイプ'] !== 'application/pdf').length;
+  const managementCount = rows.length - filtered.length - nonPdfCount;
 
   const files = filtered.map(row => {
     const parsed = parseFilename(row['ファイル名'] || '');
