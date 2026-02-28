@@ -58,7 +58,7 @@ VITE_GOOGLE_BOOKS_API_KEY=your_api_key_here
 
 ```bash
 # Start development server
-npm start
+npm run dev
 
 # Run tests
 npm test
@@ -70,7 +70,7 @@ Open `http://localhost:5173` (or the port shown in terminal) and confirm the boo
 
 | Command | Description |
 |---------|-------------|
-| `npm start` | Start development server |
+| `npm run dev` | Start development server |
 | `npm run build` | Build for production |
 | `npm test` | Run tests |
 | `npm run lint` | Run linter |

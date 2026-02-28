@@ -50,7 +50,7 @@ npm install
 node scripts/process.js
 
 # Start development server
-npm start
+npm run dev
 
 # Run tests
 npm test
