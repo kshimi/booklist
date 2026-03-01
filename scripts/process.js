@@ -302,6 +302,11 @@ function deduplicateBooks(files) {
 
     const subgenre = estimateSubgenre(bestGenre, original.title, original.author, original.series);
 
+    const version_files = {};
+    for (const f of group) {
+      version_files[f.version] = { file_url: f.file_url, file_id: f.file_id };
+    }
+
     books.push({
       title: original.title,
       author: original.author,
@@ -311,8 +316,7 @@ function deduplicateBooks(files) {
       isbn,
       pages,
       versions: group.map(f => f.version),
-      file_url: original.file_url,
-      file_id: original.file_id,
+      version_files,
     });
   }
 
@@ -373,8 +377,7 @@ function main() {
     isbn: book.isbn,
     pages: book.pages,
     versions: book.versions,
-    file_url: book.file_url,
-    file_id: book.file_id,
+    version_files: book.version_files,
   }));
 
   const outPath = path.join(__dirname, '..', 'data', 'books.json');

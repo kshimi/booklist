@@ -45,7 +45,7 @@ export default function BookDetailPage({ book, onClose, onSelectAuthor }) {
           <BookBasicInfo book={book} onSelectAuthor={handleAuthorSelect} />
 
           {/* Google Drive links */}
-          <BookVersionLinks versions={book.versions} fileUrl={book.file_url} />
+          <BookVersionLinks versions={book.versions} versionFiles={book.version_files} />
 
           {/* F-11: External book data */}
           <BookExternalInfo isbn={book.isbn} />
