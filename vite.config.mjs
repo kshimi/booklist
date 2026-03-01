@@ -40,6 +40,7 @@ function serveDataPlugin() {
 }
 
 export default defineConfig({
+  base: '/booklist/',
   plugins: [react(), serveDataPlugin()],
   publicDir: false,
 });
