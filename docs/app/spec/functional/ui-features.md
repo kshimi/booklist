@@ -146,7 +146,7 @@
 | ISBN | `books.json` | 「情報なし」 |
 | ページ数 | `books.json` | 「情報なし」 |
 | 保有バージョン | `books.json` | — |
-| Google Drive リンク | `books.json`（`file_url`） | — |
+| Google Drive リンク | `books.json`（`version_files`） | — |
 
 #### Google Drive リンク仕様
 
