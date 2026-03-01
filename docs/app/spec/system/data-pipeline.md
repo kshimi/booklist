@@ -167,10 +167,10 @@ if (isbn !== null) {
 |-----------|-------|
 | `title`, `author`, `series` | `version === 'original'` のレコードの値を優先する。オリジナル版がない場合は最初のレコードの値を使用する |
 | `versions` | 全バージョンをリストで保持する（例: `["original", "kindle"]`） |
+| `version_files` | 各バージョンの `file_url` と `file_id` をマップで保持する。全バージョン分を収集する（オリジナル版のみではない） |
 | `genre` | 下記のジャンル優先度テーブルを参照し、最も優先度の高いジャンルを採用する |
 | `isbn` | `null` でない値を優先する |
 | `pages` | `null` でない値を優先する |
-| `file_url`, `file_id` | オリジナル版のURLを使用する。オリジナル版がない場合は最初のレコードの値を使用する |
 
 #### ジャンル優先度テーブル（重複排除時）
 
@@ -208,8 +208,10 @@ if (isbn !== null) {
   "isbn": "9784101020112 または null",
   "pages": 312,
   "versions": ["original", "kindle"],
-  "file_url": "https://drive.google.com/file/d/XXXXX/view",
-  "file_id": "XXXXX"
+  "version_files": {
+    "original": { "file_url": "https://drive.google.com/file/d/XXXXX/view", "file_id": "XXXXX" },
+    "kindle":   { "file_url": "https://drive.google.com/file/d/YYYYY/view", "file_id": "YYYYY" }
+  }
 }
 ```
 

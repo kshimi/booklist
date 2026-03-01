@@ -279,24 +279,29 @@ describe('deduplicateBooks', () => {
 
   test('T-30: merges same-ISBN books into one record with both versions', () => {
     const files = [
-      makeFile({ isbn: '9784101020112', version: 'original' }),
-      makeFile({ isbn: '9784101020112', version: 'kindle' }),
+      makeFile({ isbn: '9784101020112', version: 'original', file_url: 'https://example.com/orig', file_id: 'orig_id' }),
+      makeFile({ isbn: '9784101020112', version: 'kindle', file_url: 'https://example.com/kindle', file_id: 'kindle_id' }),
     ];
     const books = deduplicateBooks(files);
     assert.equal(books.length, 1);
     assert.ok(books[0].versions.includes('original'));
     assert.ok(books[0].versions.includes('kindle'));
+    assert.equal(books[0].version_files['original'].file_url, 'https://example.com/orig');
+    assert.equal(books[0].version_files['kindle'].file_url, 'https://example.com/kindle');
+    assert.equal(books[0].version_files['original'].file_id, 'orig_id');
+    assert.equal(books[0].version_files['kindle'].file_id, 'kindle_id');
   });
 
   test('T-31: merges same-title books (no ISBN) into one record', () => {
     const files = [
-      makeFile({ isbn: null, title: '同じ本', version: 'original' }),
-      makeFile({ isbn: null, title: '同じ本', version: 'ipad3' }),
+      makeFile({ isbn: null, title: '同じ本', version: 'original', file_url: 'https://example.com/orig', file_id: 'orig_id' }),
+      makeFile({ isbn: null, title: '同じ本', version: 'ipad3', file_url: 'https://example.com/ipad3', file_id: 'ipad3_id' }),
     ];
     const books = deduplicateBooks(files);
     assert.equal(books.length, 1);
     assert.ok(books[0].versions.includes('original'));
     assert.ok(books[0].versions.includes('ipad3'));
+    assert.equal(books[0].version_files['ipad3'].file_url, 'https://example.com/ipad3');
   });
 
   test('T-32: picks higher-priority genre when merging versions', () => {
@@ -432,6 +437,12 @@ describe('Integration', () => {
       assert.ok(typeof book.genre === 'string', 'genre must be a string');
       assert.ok(book.subgenre === null || typeof book.subgenre === 'string', 'subgenre must be string or null');
       assert.ok(Array.isArray(book.versions) && book.versions.length > 0, 'versions must be non-empty array');
+      assert.ok(typeof book.version_files === 'object' && book.version_files !== null, 'version_files must be an object');
+      for (const v of book.versions) {
+        assert.ok(book.version_files[v], `version_files must have entry for version "${v}"`);
+        assert.ok(typeof book.version_files[v].file_url === 'string', `version_files[${v}].file_url must be a string`);
+        assert.ok(typeof book.version_files[v].file_id === 'string', `version_files[${v}].file_id must be a string`);
+      }
     }
   });
 

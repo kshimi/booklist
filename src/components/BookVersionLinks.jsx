@@ -1,6 +1,6 @@
 import { VERSION_LABELS } from '../constants';
 
-export default function BookVersionLinks({ versions, fileUrl }) {
+export default function BookVersionLinks({ versions, versionFiles }) {
   if (!versions || versions.length === 0) return null;
 
   return (
@@ -8,7 +8,7 @@ export default function BookVersionLinks({ versions, fileUrl }) {
       {versions.map(version => (
         <a
           key={version}
-          href={fileUrl}
+          href={versionFiles?.[version]?.file_url}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-medium px-3 py-1.5 rounded border border-blue-200 transition-colors"

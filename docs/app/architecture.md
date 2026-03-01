@@ -114,8 +114,10 @@ data/booklist.csv
   "isbn": "ISBN または null",
   "pages": 186,
   "versions": ["original", "kindle"],
-  "file_url": "https://drive.google.com/...",
-  "file_id": "Google Drive ファイルID"
+  "version_files": {
+    "original": { "file_url": "https://drive.google.com/...", "file_id": "Google Drive ファイルID" },
+    "kindle":   { "file_url": "https://drive.google.com/...", "file_id": "Google Drive ファイルID" }
+  }
 }
 ```
 

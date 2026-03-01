@@ -234,7 +234,7 @@ App
 | 項目 | 内容 |
 |------|------|
 | 役割 | 保有バージョンごとの Google Drive リンクボタンを表示する |
-| Props | `versions`, `fileUrl`, `fileId` |
+| Props | `versions`, `versionFiles` |
 
 **ボタンラベル**:
 
@@ -246,7 +246,7 @@ App
 
 **仕様**:
 - 各ボタンクリックで Google Drive の PDF を新しいタブで開く
-- `file_url` を使用する（`file_id` からの URL 組み立ても可）
+- `versionFiles[version].file_url` を使用する（バージョンごとに異なるURL）
 
 ---
 
