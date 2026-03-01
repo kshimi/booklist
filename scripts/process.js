@@ -254,7 +254,10 @@ function normalizeAuthor(author) {
   let result = author.replace(/．/g, '.');
   const spaceCount = (result.match(/ /g) || []).length;
   if (spaceCount === 1) {
-    result = result.replace(' ', '・');
+    // Japanese names (containing kanji): remove the space (山田 太郎 → 山田太郎)
+    // Foreign names (katakana/Latin only): replace with nakaguro (アイザック アシモフ → アイザック・アシモフ)
+    const hasKanji = /[\u4E00-\u9FFF\u3400-\u4DBF]/.test(result);
+    result = hasKanji ? result.replace(' ', '') : result.replace(' ', '・');
   }
   return result.trim();
 }

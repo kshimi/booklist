@@ -98,6 +98,14 @@ describe('normalizeAuthor', () => {
     assert.equal(normalizeAuthor('J．R．R． トールキン'), 'J.R.R.・トールキン');
   });
 
+  test('removes space for Japanese kanji names without adding nakaguro', () => {
+    assert.equal(normalizeAuthor('山田 太郎'), '山田太郎');
+  });
+
+  test('removes space for kanji+hiragana names (e.g. 太宰 治)', () => {
+    assert.equal(normalizeAuthor('太宰 治'), '太宰治');
+  });
+
   test('does not replace space when more than one space exists', () => {
     assert.equal(normalizeAuthor('アーサー コナン ドイル'), 'アーサー コナン ドイル');
   });
