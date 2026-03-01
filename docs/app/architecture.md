@@ -31,7 +31,7 @@ PC または iPad のブラウザ
         │
         ├─ 書籍一覧（検索・フィルタ・ソート）
         ├─ 書籍詳細
-        │    ├─ Google Drive リンク（file_url）→ PDF を Google Drive で開く
+        │    ├─ Google Drive リンク（version_files[version].file_url）→ PDF を Google Drive で開く
         │    └─ ISBN がある場合 → OpenBD API 呼び出し
         │                        → データなしなら Google Books API へフォールバック
         └─ 統計ダッシュボード（ジャンル分布・著者ランキング）
@@ -157,4 +157,4 @@ data/booklist.csv
 | 実行環境 | PC または iPad のブラウザ。Google Drive へのアクセス権限が必要 |
 | 外部書誌API | ブラウザからの直接呼び出し（CORS 対応済み公開API）。APIキー不要 |
 | データ取得 | Google Drive への直接 API アクセスは行わず、Google Apps Script で取得した CSV を使用する |
-| PDF 参照 | 書籍詳細の `file_url`（Google Drive リンク）をブラウザで開くことで PDF を閲覧する |
+| PDF 参照 | 書籍詳細の `version_files[version].file_url`（Google Drive リンク）をブラウザで開くことで PDF を閲覧する |
