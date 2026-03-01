@@ -301,7 +301,10 @@ describe('deduplicateBooks', () => {
     assert.equal(books.length, 1);
     assert.ok(books[0].versions.includes('original'));
     assert.ok(books[0].versions.includes('ipad3'));
+    assert.equal(books[0].version_files['original'].file_url, 'https://example.com/orig');
+    assert.equal(books[0].version_files['original'].file_id, 'orig_id');
     assert.equal(books[0].version_files['ipad3'].file_url, 'https://example.com/ipad3');
+    assert.equal(books[0].version_files['ipad3'].file_id, 'ipad3_id');
   });
 
   test('T-32: picks higher-priority genre when merging versions', () => {
