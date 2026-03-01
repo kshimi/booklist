@@ -251,7 +251,7 @@ function parseFilename(filename) {
  * 2. Single space → nakaguro (・) for two-word 姓名 format.
  */
 function normalizeAuthor(author) {
-  let result = author.replace(/．/g, '.');
+  let result = author.normalize('NFC').replace(/．/g, '.');
   const spaceCount = (result.match(/ /g) || []).length;
   if (spaceCount === 1) {
     // Japanese names (containing kanji): remove the space (山田 太郎 → 山田太郎)

@@ -150,7 +150,7 @@ const AUTHOR_ALIASES_PATH = path.join(__dirname, '../data/author-aliases.json');
 ```json
 {
   "揺れ表記（正規化ルール適用後の文字列）": "正規名",
-  "J.R.R. トールキン": "J.R.R.トールキン"
+  "J.R.R.・トールキン": "J.R.R.トールキン"
 }
 ```
 
