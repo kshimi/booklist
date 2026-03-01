@@ -106,6 +106,56 @@ const filtered = rows.filter(row =>
 | ページ数 | `/ (\d+)p$/` | 末尾の半角スペース+数字+p |
 | シリーズ名 | `/[（(]([^）)]+)[）)]/g` | 全角・半角括弧どちらも対象 |
 
+#### 著者名正規化（ステップ2-8・2-9）
+
+著者名抽出（2-6）の後、以下の2段階で正規化を行う。
+
+**2-8: 正規化ルール適用**
+
+```javascript
+function normalizeAuthor(author) {
+  // 全角ドット → 半角ピリオド（イニシャル表記向け）
+  let result = author.replace(/．/g, '.');
+  // 半角スペースを中黒に置換（姓 名の2単語形式のみ）
+  // ※ 日本語文字に挟まれたスペース、または日本語+アルファベット間のスペースを対象
+  result = result.replace(/(\S)\s+(\S)/g, (_, a, b) => `${a}・${b}`);
+  return result.trim();
+}
+```
+
+> 実装時は実データを確認し、誤変換が発生しないよう正規表現の適用範囲を調整する。
+
+**2-9: エイリアステーブル照合**
+
+```javascript
+// data/author-aliases.json の読み込み（process.js 起動時に一度だけ行う）
+let authorAliases = {};
+if (fs.existsSync(AUTHOR_ALIASES_PATH)) {
+  authorAliases = JSON.parse(fs.readFileSync(AUTHOR_ALIASES_PATH, 'utf8'));
+}
+
+function resolveAuthorAlias(author) {
+  return authorAliases[author] ?? author;
+}
+```
+
+**定数定義:**
+
+```javascript
+const AUTHOR_ALIASES_PATH = path.join(__dirname, '../data/author-aliases.json');
+```
+
+**`data/author-aliases.json` の形式:**
+
+```json
+{
+  "揺れ表記（正規化ルール適用後の文字列）": "正規名",
+  "J.R.R. トールキン": "J.R.R.トールキン"
+}
+```
+
+---
+
 #### パース結果フィールド
 
 | フィールド | 型 | 内容 |

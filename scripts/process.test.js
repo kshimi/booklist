@@ -9,6 +9,8 @@ const {
   parseCSV,
   filterRecords,
   parseFilename,
+  normalizeAuthor,
+  resolveAuthorAlias,
   estimateGenre,
   estimateSubgenre,
   deduplicateBooks,
@@ -76,6 +78,64 @@ describe('parseFilename', () => {
     assert.equal(r.author, '著者名');
     assert.equal(r.series, '新潮文庫');
     assert.equal(r.title, 'タイトル');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// normalizeAuthor
+// ---------------------------------------------------------------------------
+
+describe('normalizeAuthor', () => {
+  test('replaces single space with nakaguro (2-word 姓名 format)', () => {
+    assert.equal(normalizeAuthor('アイザック アシモフ'), 'アイザック・アシモフ');
+  });
+
+  test('converts full-width periods to half-width periods', () => {
+    assert.equal(normalizeAuthor('J．R．R．トールキン'), 'J.R.R.トールキン');
+  });
+
+  test('converts full-width periods then replaces single space with nakaguro', () => {
+    assert.equal(normalizeAuthor('J．R．R． トールキン'), 'J.R.R.・トールキン');
+  });
+
+  test('removes space for Japanese kanji names without adding nakaguro', () => {
+    assert.equal(normalizeAuthor('山田 太郎'), '山田太郎');
+  });
+
+  test('removes space for kanji+hiragana names (e.g. 太宰 治)', () => {
+    assert.equal(normalizeAuthor('太宰 治'), '太宰治');
+  });
+
+  test('does not replace space when more than one space exists', () => {
+    assert.equal(normalizeAuthor('アーサー コナン ドイル'), 'アーサー コナン ドイル');
+  });
+
+  test('trims leading and trailing whitespace', () => {
+    assert.equal(normalizeAuthor('  著者名  '), '著者名');
+  });
+
+  test('leaves name unchanged when no normalization needed', () => {
+    assert.equal(normalizeAuthor('アイザック・アシモフ'), 'アイザック・アシモフ');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// resolveAuthorAlias
+// ---------------------------------------------------------------------------
+
+describe('resolveAuthorAlias', () => {
+  const aliases = { 'J.R.R.・トールキン': 'J.R.R.トールキン' };
+
+  test('returns canonical name when alias exists', () => {
+    assert.equal(resolveAuthorAlias('J.R.R.・トールキン', aliases), 'J.R.R.トールキン');
+  });
+
+  test('returns original name when no alias found', () => {
+    assert.equal(resolveAuthorAlias('アイザック・アシモフ', aliases), 'アイザック・アシモフ');
+  });
+
+  test('returns original name when alias map is empty', () => {
+    assert.equal(resolveAuthorAlias('著者名', {}), '著者名');
   });
 });
 

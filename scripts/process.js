@@ -5,6 +5,8 @@ const path = require('path');
 
 const EXCLUDED_NAMES = ['self_check', '20120330_1246_33_0706', 'to_1733_912_003_5_at'];
 
+const AUTHOR_ALIASES_PATH = path.join(__dirname, '..', 'data', 'author-aliases.json');
+
 const GENRE_RULES = [
   { test: (p) => p.includes('エッセイ'), genre: 'エッセイ' },
   { test: (p) => p.includes('日本の作家'), genre: 'フィクション（日本）' },
@@ -244,6 +246,31 @@ function parseFilename(filename) {
 }
 
 /**
+ * Apply normalization rules to an author name.
+ * 1. Full-width period (．) → half-width period (.) for initials.
+ * 2. Single space → nakaguro (・) for two-word 姓名 format.
+ */
+function normalizeAuthor(author) {
+  let result = author.replace(/．/g, '.');
+  const spaceCount = (result.match(/ /g) || []).length;
+  if (spaceCount === 1) {
+    // Japanese names (containing kanji): remove the space (山田 太郎 → 山田太郎)
+    // Foreign names (katakana/Latin only): replace with nakaguro (アイザック アシモフ → アイザック・アシモフ)
+    const hasKanji = /[\u4E00-\u9FFF\u3400-\u4DBF]/.test(result);
+    result = hasKanji ? result.replace(' ', '') : result.replace(' ', '・');
+  }
+  return result.trim();
+}
+
+/**
+ * Look up an author name in the alias table and return the canonical name.
+ * Returns the original name unchanged if no alias is found.
+ */
+function resolveAuthorAlias(author, aliases) {
+  return aliases[author] ?? author;
+}
+
+/**
  * Estimate genre from folder path using priority-ordered keyword matching.
  * Falls back to title/author/series keyword matching when folder path yields 未分類.
  */
@@ -343,6 +370,10 @@ function main() {
     process.exit(1);
   }
 
+  const authorAliases = fs.existsSync(AUTHOR_ALIASES_PATH)
+    ? JSON.parse(fs.readFileSync(AUTHOR_ALIASES_PATH, 'utf-8'))
+    : {};
+
   const csvText = fs.readFileSync(csvPath, 'utf-8');
   const rows = parseCSV(csvText);
 
@@ -352,9 +383,11 @@ function main() {
 
   const files = filtered.map(row => {
     const parsed = parseFilename(row['ファイル名'] || '');
-    const genre = estimateGenre(row['フォルダパス'] || '', parsed.title, parsed.author, parsed.series);
+    const author = resolveAuthorAlias(normalizeAuthor(parsed.author), authorAliases);
+    const genre = estimateGenre(row['フォルダパス'] || '', parsed.title, author, parsed.series);
     return {
       ...parsed,
+      author,
       genre,
       folder_path: row['フォルダパス'] || '',
       file_url: row['ファイルURL'] || '',
@@ -391,7 +424,7 @@ function main() {
   console.log(`  出力ファイル: data/books.json`);
 }
 
-module.exports = { parseCSV, filterRecords, parseFilename, estimateGenre, estimateSubgenre, deduplicateBooks, generateId };
+module.exports = { parseCSV, filterRecords, parseFilename, normalizeAuthor, resolveAuthorAlias, estimateGenre, estimateSubgenre, deduplicateBooks, generateId };
 
 if (require.main === module) {
   main();
