@@ -30,7 +30,13 @@ function loadCorrections() {
 function listMissing() {
   const books = loadBooks();
   const corrections = loadCorrections();
-  const registeredTitles = new Set(corrections.map(c => c.original_title));
+  // Include both original_title and title so that entries where the correction
+  // changes the title (original_title !== title) are still recognized after
+  // process.js has written the corrected title into books.json.
+  const registeredTitles = new Set([
+    ...corrections.map(c => c.original_title),
+    ...corrections.map(c => c.title),
+  ]);
 
   const missing = books.filter(b => b.author === '' && !registeredTitles.has(b.title));
 
@@ -47,8 +53,15 @@ function listMissing() {
 }
 
 /**
- * Detect pages and ISBN embedded in a title string (from filenames where the
- * Google Drive " (1)" suffix prevented normal extraction).
+ * Detect pages and ISBN embedded in a title string.
+ * Used only by --generate mode to pre-populate correction entries.
+ *
+ * Background: when Google Drive appends a " (1)" deduplication suffix, the
+ * normal parseFilename path cannot extract pages/ISBN from the suffix, so they
+ * end up embedded in the title field of books.json (e.g., "雪国 208p_4101001014").
+ * This function strips those fields so the generated correction entry gets a
+ * clean title, and the pages/isbn keys are set explicitly.
+ *
  * Matches patterns like " 208p_4101001014" or " 320p_" at the end of the title.
  * Returns { cleanedTitle, pages, isbn } on match, or null if not found.
  */
