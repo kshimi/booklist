@@ -5331,15 +5331,16 @@
   },
   {
     "id": "4042770010",
-    "title": "セブン・イヤーズ・イン・チベット-チベットの7年",
-    "author": "ハインリヒ・ハラー",
+    "title": "セブン・イヤーズ・イン・チベット-チベットの7年 ハインリヒ ハラー",
+    "author": "",
     "genre": "フィクション",
     "subgenre": "その他フィクション",
-    "series": "角川文庫ソフィア",
+    "series": "角川文庫ソフィア／1",
     "isbn": "4042770010",
     "pages": 474,
     "versions": [
       "kindle",
+      "original",
       "original"
     ],
     "version_files": {
@@ -5350,25 +5351,6 @@
       "original": {
         "file_url": "https://drive.google.com/file/d/1FppDd4jUndnYrCK_DMOB1sXvIjfrkWSH/view?usp=drivesdk",
         "file_id": "1FppDd4jUndnYrCK_DMOB1sXvIjfrkWSH"
-      }
-    }
-  },
-  {
-    "id": "title_0e08de3c",
-    "title": "セブン・イヤーズ・イン・チベット-チベットの7年 ハインリヒ ハラー 474p_4042770010",
-    "author": "",
-    "genre": "フィクション",
-    "subgenre": "その他フィクション",
-    "series": "角川文庫ソフィア／1",
-    "isbn": null,
-    "pages": null,
-    "versions": [
-      "original"
-    ],
-    "version_files": {
-      "original": {
-        "file_url": "https://drive.google.com/file/d/1D05NRiSVoSaQjpTX5fzHyDJ0rk_E9L_C/view?usp=drivesdk",
-        "file_id": "1D05NRiSVoSaQjpTX5fzHyDJ0rk_E9L_C"
       }
     }
   },
@@ -13230,15 +13212,16 @@
   },
   {
     "id": "4101144281",
-    "title": "私の京都 小説の旅",
-    "author": "瀬戸内寂聴",
+    "title": "私の京都 小説の旅 瀬戸内 寂聴",
+    "author": "",
     "genre": "エッセイ",
     "subgenre": null,
-    "series": "新潮文庫",
+    "series": "新潮文庫／1",
     "isbn": "4101144281",
     "pages": 243,
     "versions": [
       "kindle",
+      "original",
       "original"
     ],
     "version_files": {
@@ -13249,25 +13232,6 @@
       "original": {
         "file_url": "https://drive.google.com/file/d/1jOIWwENv2hyCb1wk84g3E_k_aUMk9UsX/view?usp=drivesdk",
         "file_id": "1jOIWwENv2hyCb1wk84g3E_k_aUMk9UsX"
-      }
-    }
-  },
-  {
-    "id": "title_63733e8c",
-    "title": "私の京都 小説の旅 瀬戸内 寂聴 243p_4101144281",
-    "author": "",
-    "genre": "エッセイ",
-    "subgenre": null,
-    "series": "新潮文庫／1",
-    "isbn": null,
-    "pages": null,
-    "versions": [
-      "original"
-    ],
-    "version_files": {
-      "original": {
-        "file_url": "https://drive.google.com/file/d/1HB6bjYScr2jt-wOpYTsNhgEuHozPOc7e/view?usp=drivesdk",
-        "file_id": "1HB6bjYScr2jt-wOpYTsNhgEuHozPOc7e"
       }
     }
   },
@@ -13539,15 +13503,16 @@
   },
   {
     "id": "4003220633",
-    "title": "失楽園 下",
-    "author": "ミルトン",
+    "title": "失楽園 下 ミルトン",
+    "author": "",
     "genre": "フィクション",
     "subgenre": "その他フィクション",
-    "series": "岩波文庫 赤 206-3",
+    "series": "岩波文庫 赤 206-3／1",
     "isbn": "4003220633",
     "pages": 431,
     "versions": [
       "kindle",
+      "original",
       "original"
     ],
     "version_files": {
@@ -13562,35 +13527,17 @@
     }
   },
   {
-    "id": "title_1db90773",
-    "title": "失楽園 下 ミルトン 431p_4003220633",
+    "id": "4003220625",
+    "title": "失楽園 上 ミルトン",
     "author": "",
     "genre": "フィクション",
     "subgenre": "その他フィクション",
-    "series": "岩波文庫 赤 206-3／1",
-    "isbn": null,
-    "pages": null,
-    "versions": [
-      "original"
-    ],
-    "version_files": {
-      "original": {
-        "file_url": "https://drive.google.com/file/d/1PgfZfUVeY_rHbAyp2PVvxEeO7aGdFERJ/view?usp=drivesdk",
-        "file_id": "1PgfZfUVeY_rHbAyp2PVvxEeO7aGdFERJ"
-      }
-    }
-  },
-  {
-    "id": "4003220625",
-    "title": "失楽園 上",
-    "author": "ミルトン",
-    "genre": "フィクション",
-    "subgenre": "その他フィクション",
-    "series": "岩波文庫 赤 206-2",
+    "series": "岩波文庫 赤 206-2／1",
     "isbn": "4003220625",
     "pages": 443,
     "versions": [
       "kindle",
+      "original",
       "original"
     ],
     "version_files": {
@@ -13601,25 +13548,6 @@
       "original": {
         "file_url": "https://drive.google.com/file/d/1QBJFta9If7-z3IqEVoGZkuN9n2YCIGUd/view?usp=drivesdk",
         "file_id": "1QBJFta9If7-z3IqEVoGZkuN9n2YCIGUd"
-      }
-    }
-  },
-  {
-    "id": "title_850b0956",
-    "title": "失楽園 上 ミルトン 443p_4003220625",
-    "author": "",
-    "genre": "フィクション",
-    "subgenre": "その他フィクション",
-    "series": "岩波文庫 赤 206-2／1",
-    "isbn": null,
-    "pages": null,
-    "versions": [
-      "original"
-    ],
-    "version_files": {
-      "original": {
-        "file_url": "https://drive.google.com/file/d/1LZpuMzMz52Offv6L3dfi4wwKhG7F5C8g/view?usp=drivesdk",
-        "file_id": "1LZpuMzMz52Offv6L3dfi4wwKhG7F5C8g"
       }
     }
   },
@@ -16537,15 +16465,16 @@
   },
   {
     "id": "4101001014",
-    "title": "雪国",
-    "author": "川端康成",
+    "title": "雪国 川端 康成",
+    "author": "",
     "genre": "フィクション（日本）",
     "subgenre": "その他フィクション",
-    "series": "新潮文庫 （か-1-1",
+    "series": "新潮文庫 （か-1-1／1",
     "isbn": "4101001014",
     "pages": 208,
     "versions": [
       "kindle",
+      "original",
       "original"
     ],
     "version_files": {
@@ -16556,25 +16485,6 @@
       "original": {
         "file_url": "https://drive.google.com/file/d/1TKmtVH9m5EI40nrtdC_RcXDBRBI8PvNu/view?usp=drivesdk",
         "file_id": "1TKmtVH9m5EI40nrtdC_RcXDBRBI8PvNu"
-      }
-    }
-  },
-  {
-    "id": "title_dada6fb4",
-    "title": "雪国 川端 康成 208p_4101001014",
-    "author": "",
-    "genre": "フィクション",
-    "subgenre": "その他フィクション",
-    "series": "新潮文庫 （か-1-1／1",
-    "isbn": null,
-    "pages": null,
-    "versions": [
-      "original"
-    ],
-    "version_files": {
-      "original": {
-        "file_url": "https://drive.google.com/file/d/1V9gXRyCVF9jscUZHN7vYPOT04fA0abut/view?usp=drivesdk",
-        "file_id": "1V9gXRyCVF9jscUZHN7vYPOT04fA0abut"
       }
     }
   },
@@ -18578,15 +18488,16 @@
   },
   {
     "id": "4003363981",
-    "title": "反時代的考察",
-    "author": "ニーチェ",
+    "title": "反時代的考察 ニイチェ",
+    "author": "",
     "genre": "フィクション",
     "subgenre": "その他フィクション",
-    "series": "下巻／岩波文庫",
+    "series": "下巻／岩波文庫／1",
     "isbn": "4003363981",
     "pages": 221,
     "versions": [
       "kindle",
+      "original",
       "original"
     ],
     "version_files": {
@@ -18602,15 +18513,16 @@
   },
   {
     "id": "4003363973",
-    "title": "反時代的考察",
-    "author": "ニーチェ",
+    "title": "反時代的考察 ニイチェ",
+    "author": "",
     "genre": "フィクション",
     "subgenre": "その他フィクション",
-    "series": "上巻／岩波文庫",
+    "series": "上巻／岩波文庫／1",
     "isbn": "4003363973",
     "pages": 233,
     "versions": [
       "kindle",
+      "original",
       "original"
     ],
     "version_files": {
@@ -18621,44 +18533,6 @@
       "original": {
         "file_url": "https://drive.google.com/file/d/1ON-2OVyfhEK6OVSYuH03h4c2sk3wCoFH/view?usp=drivesdk",
         "file_id": "1ON-2OVyfhEK6OVSYuH03h4c2sk3wCoFH"
-      }
-    }
-  },
-  {
-    "id": "title_8d503e9d",
-    "title": "反時代的考察 ニイチェ 221p_4003363981",
-    "author": "",
-    "genre": "フィクション",
-    "subgenre": "その他フィクション",
-    "series": "下巻／岩波文庫／1",
-    "isbn": null,
-    "pages": null,
-    "versions": [
-      "original"
-    ],
-    "version_files": {
-      "original": {
-        "file_url": "https://drive.google.com/file/d/1YbUU8eqO0GpCjzpqBzzsTHOIldHQdkc5/view?usp=drivesdk",
-        "file_id": "1YbUU8eqO0GpCjzpqBzzsTHOIldHQdkc5"
-      }
-    }
-  },
-  {
-    "id": "title_674e8b21",
-    "title": "反時代的考察 ニイチェ 233p_4003363973",
-    "author": "",
-    "genre": "フィクション",
-    "subgenre": "その他フィクション",
-    "series": "上巻／岩波文庫／1",
-    "isbn": null,
-    "pages": null,
-    "versions": [
-      "original"
-    ],
-    "version_files": {
-      "original": {
-        "file_url": "https://drive.google.com/file/d/1IurOyU5vneogn4Tu2ffTLnZ2tgSEVJM9/view?usp=drivesdk",
-        "file_id": "1IurOyU5vneogn4Tu2ffTLnZ2tgSEVJM9"
       }
     }
   },
@@ -19365,14 +19239,14 @@
     }
   },
   {
-    "id": "title_b63c4217",
-    "title": "聞かせてよ、ファインマンさん ファインマン 著 大貫 昌子 訳 江沢 洋 訳 320p_",
+    "id": "title_367a8413",
+    "title": "聞かせてよ、ファインマンさん ファインマン 著 大貫 昌子 訳 江沢 洋 訳",
     "author": "",
     "genre": "エッセイ",
     "subgenre": null,
     "series": null,
     "isbn": null,
-    "pages": null,
+    "pages": 320,
     "versions": [
       "kindle",
       "ipad3",

@@ -170,25 +170,44 @@ describe('applyBookCorrections', () => {
   ];
 
   test('returns corrected title and author when original_title matches', () => {
-    const result = applyBookCorrections('GNU Emacs デブラ キャメロン', '', corrections);
-    assert.deepEqual(result, { title: 'GNU Emacs', author: 'デブラ・キャメロン' });
+    const result = applyBookCorrections('GNU Emacs デブラ キャメロン', '', null, null, corrections);
+    assert.deepEqual(result, { title: 'GNU Emacs', author: 'デブラ・キャメロン', pages: null, isbn: null });
   });
 
   test('returns unchanged title and author when no match found', () => {
-    const result = applyBookCorrections('存在しないタイトル', '著者名', corrections);
-    assert.deepEqual(result, { title: '存在しないタイトル', author: '著者名' });
+    const result = applyBookCorrections('存在しないタイトル', '著者名', null, null, corrections);
+    assert.deepEqual(result, { title: '存在しないタイトル', author: '著者名', pages: null, isbn: null });
   });
 
   test('returns unchanged when corrections array is empty', () => {
-    const result = applyBookCorrections('GNU Emacs デブラ キャメロン', '', []);
-    assert.deepEqual(result, { title: 'GNU Emacs デブラ キャメロン', author: '' });
+    const result = applyBookCorrections('GNU Emacs デブラ キャメロン', '', null, null, []);
+    assert.deepEqual(result, { title: 'GNU Emacs デブラ キャメロン', author: '', pages: null, isbn: null });
   });
 
   test('correction with empty author field keeps author empty', () => {
-    const result = applyBookCorrections('Rubyベストプラクティス', '', [
+    const result = applyBookCorrections('Rubyベストプラクティス', '', null, null, [
       { original_title: 'Rubyベストプラクティス', title: 'Rubyベストプラクティス', author: '' },
     ]);
-    assert.deepEqual(result, { title: 'Rubyベストプラクティス', author: '' });
+    assert.deepEqual(result, { title: 'Rubyベストプラクティス', author: '', pages: null, isbn: null });
+  });
+
+  test('correction with pages and isbn overrides parsed null values', () => {
+    const result = applyBookCorrections('雪国 川端 康成 208p_4101001014', '', null, null, [
+      { original_title: '雪国 川端 康成 208p_4101001014', title: '雪国', author: '川端康成', pages: 208, isbn: '4101001014' },
+    ]);
+    assert.deepEqual(result, { title: '雪国', author: '川端康成', pages: 208, isbn: '4101001014' });
+  });
+
+  test('correction without pages/isbn keys keeps parsed values', () => {
+    const result = applyBookCorrections('GNU Emacs デブラ キャメロン', '', 300, '1234567890', corrections);
+    assert.deepEqual(result, { title: 'GNU Emacs', author: 'デブラ・キャメロン', pages: 300, isbn: '1234567890' });
+  });
+
+  test('correction with explicit null pages/isbn overrides non-null parsed values', () => {
+    const result = applyBookCorrections('タイトル', '著者', 300, '1234567890', [
+      { original_title: 'タイトル', title: 'タイトル', author: '著者', pages: null, isbn: null },
+    ]);
+    assert.deepEqual(result, { title: 'タイトル', author: '著者', pages: null, isbn: null });
   });
 });
 

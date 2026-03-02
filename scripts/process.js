@@ -289,15 +289,24 @@ function extractAuthorFromTitle(title) {
 
 /**
  * Apply manual corrections from book-corrections.json.
- * Looks up the parsed title in the corrections list and returns the override
- * values if found; otherwise returns the original title and author unchanged.
+ * Looks up the parsed title in the corrections list and returns overridden values
+ * for title, author, pages, and isbn when present; otherwise returns the originals.
+ *
+ * pages and isbn fields in a correction entry are optional:
+ *   - If present (including null), the value overrides the parsed result.
+ *   - If absent (key not in the entry object), the parsed result is kept.
  */
-function applyBookCorrections(title, author, corrections) {
+function applyBookCorrections(title, author, pages, isbn, corrections) {
   const entry = corrections.find(c => c.original_title === title);
   if (entry) {
-    return { title: entry.title, author: entry.author };
+    return {
+      title: entry.title,
+      author: entry.author,
+      pages: 'pages' in entry ? entry.pages : pages,
+      isbn: 'isbn' in entry ? entry.isbn : isbn,
+    };
   }
-  return { title, author };
+  return { title, author, pages, isbn };
 }
 
 /**
@@ -443,12 +452,14 @@ function main() {
   const files = filtered.map(row => {
     const parsed = parseFilename(row['ファイル名'] || '');
     const normalizedAuthor = resolveAuthorAlias(normalizeAuthor(parsed.author), authorAliases);
-    const corrected = applyBookCorrections(parsed.title, normalizedAuthor, bookCorrections);
+    const corrected = applyBookCorrections(parsed.title, normalizedAuthor, parsed.pages, parsed.isbn, bookCorrections);
     const genre = estimateGenre(row['フォルダパス'] || '', corrected.title, corrected.author, parsed.series);
     return {
       ...parsed,
       title: corrected.title,
       author: corrected.author,
+      pages: corrected.pages,
+      isbn: corrected.isbn,
       genre,
       folder_path: row['フォルダパス'] || '',
       file_url: row['ファイルURL'] || '',

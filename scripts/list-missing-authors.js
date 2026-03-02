@@ -46,6 +46,22 @@ function listMissing() {
   });
 }
 
+/**
+ * Detect pages and ISBN embedded in a title string (from filenames where the
+ * Google Drive " (1)" suffix prevented normal extraction).
+ * Matches patterns like " 208p_4101001014" or " 320p_" at the end of the title.
+ * Returns { cleanedTitle, pages, isbn } on match, or null if not found.
+ */
+function extractPagesIsbnFromTitle(title) {
+  const match = title.match(/\s(\d+)p_([A-Za-z0-9]{10,13})?$/);
+  if (!match) return null;
+  return {
+    cleanedTitle: title.slice(0, match.index).trim(),
+    pages: parseInt(match[1], 10),
+    isbn: match[2] || null,
+  };
+}
+
 function generateCorrections() {
   const books = loadBooks();
   const existing = loadCorrections();
@@ -53,7 +69,19 @@ function generateCorrections() {
 
   const newEntries = books
     .filter(b => b.author === '' && !existingTitles.has(b.title))
-    .map(b => ({ original_title: b.title, title: b.title, author: '' }));
+    .map(b => {
+      const pagesIsbn = extractPagesIsbnFromTitle(b.title);
+      const entry = {
+        original_title: b.title,
+        title: pagesIsbn ? pagesIsbn.cleanedTitle : b.title,
+        author: '',
+      };
+      if (pagesIsbn) {
+        entry.pages = pagesIsbn.pages;
+        entry.isbn = pagesIsbn.isbn;
+      }
+      return entry;
+    });
 
   if (newEntries.length === 0) {
     console.log('追加すべきエントリはありません。');
