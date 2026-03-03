@@ -180,6 +180,40 @@ async function fetchGoogleBooks(isbn13) {
 }
 
 // ---------------------------------------------------------------------------
+// Google Books loop (extracted for testability)
+// ---------------------------------------------------------------------------
+
+async function runGoogleBooksStep(targets, results, isbn10to13Map, failedISBNs, fetchFn, delayMs) {
+  let gbHits = 0;
+  let googleQuotaExceeded = false;
+  for (const b of targets) {
+    if (googleQuotaExceeded) break;
+    const isbn13 = isbn10to13Map[b.isbn];
+    if (!isbn13) continue;
+    try {
+      const entry = await fetchFn(isbn13);
+      if (entry) {
+        if (results[b.isbn]) {
+          results[b.isbn] = mergeInto(results[b.isbn], entry);
+        } else {
+          results[b.isbn] = entry;
+        }
+        gbHits++;
+      }
+    } catch (err) {
+      if (/HTTP 429/.test(err.message)) {
+        googleQuotaExceeded = true;
+        console.warn('[Google Books] Quota exceeded. Skipping remaining requests.');
+      } else {
+        failedISBNs.google.push(b.isbn);
+      }
+    }
+    if (!googleQuotaExceeded) await wait(delayMs);
+  }
+  return gbHits;
+}
+
+// ---------------------------------------------------------------------------
 // Merge helper: fill null fields from a secondary result
 // ---------------------------------------------------------------------------
 
@@ -283,26 +317,8 @@ async function main() {
   // --- Step 3: Google Books (sequential, for description gaps) ---
   if (!SKIP_GOOGLE) {
     const gbTargets = targets.filter(b => !results[b.isbn]?.description);
-    let gbHits = 0;
     console.log(`[Google Books] ${gbTargets.length} ISBNs to try`);
-    for (const b of gbTargets) {
-      const isbn13 = isbn10to13Map[b.isbn];
-      if (!isbn13) continue;
-      try {
-        const entry = await fetchGoogleBooks(isbn13);
-        if (entry) {
-          if (results[b.isbn]) {
-            results[b.isbn] = mergeInto(results[b.isbn], entry);
-          } else {
-            results[b.isbn] = entry;
-          }
-          gbHits++;
-        }
-      } catch (err) {
-        failedISBNs.google.push(b.isbn);
-      }
-      await wait(500);
-    }
+    const gbHits = await runGoogleBooksStep(gbTargets, results, isbn10to13Map, failedISBNs, fetchGoogleBooks, 500);
     console.log(`[Google Books] ${gbHits} hits`);
   }
 
@@ -333,7 +349,11 @@ async function main() {
   }
 }
 
-main().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
+}
+
+module.exports = { isbn10to13, mergeInto, runGoogleBooksStep };
