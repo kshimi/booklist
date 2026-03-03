@@ -7,7 +7,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "process": "node scripts/process.js",
-    "test": "node --test scripts/process.test.js"
+    "test": "node --test scripts/process.test.js scripts/enrich.test.js"
   },
   "engines": {
     "node": ">=18"
