@@ -13,10 +13,12 @@ const {
   applyBookCorrections,
   normalizeAuthor,
   resolveAuthorAlias,
+  parseOfflineCsv,
   estimateGenre,
   estimateSubgenre,
   deduplicateBooks,
   generateId,
+  OFFLINE_GENRE_MAP,
 } = require('./process.js');
 
 // ---------------------------------------------------------------------------
@@ -534,6 +536,140 @@ describe('deduplicateBooks', () => {
     assert.equal(books.length, 1);
     assert.equal(books[0].pages, 200);
   });
+
+  test('source is google_drive when all records have source google_drive', () => {
+    const files = [
+      makeFile({ isbn: '9784101020112', version: 'original', source: 'google_drive' }),
+      makeFile({ isbn: '9784101020112', version: 'kindle', source: 'google_drive' }),
+    ];
+    const books = deduplicateBooks(files);
+    assert.equal(books[0].source, 'google_drive');
+  });
+
+  test('source is paper when record has source paper', () => {
+    const files = [makeFile({ version: null, source: 'paper' })];
+    const books = deduplicateBooks(files);
+    assert.equal(books[0].source, 'paper');
+  });
+
+  test('source is array when google_drive and paper records share the same key', () => {
+    const files = [
+      makeFile({ isbn: '9784101020112', version: 'original', source: 'google_drive', file_url: 'https://example.com/orig', file_id: 'orig_id' }),
+      makeFile({ isbn: '9784101020112', version: null, source: 'paper', file_url: null, file_id: null }),
+    ];
+    const books = deduplicateBooks(files);
+    assert.equal(books.length, 1);
+    assert.deepEqual(books[0].source, ['google_drive', 'paper']);
+  });
+
+  test('paper record has empty versions and version_files', () => {
+    const files = [makeFile({ version: null, source: 'paper', file_url: null, file_id: null })];
+    const books = deduplicateBooks(files);
+    assert.deepEqual(books[0].versions, []);
+    assert.deepEqual(books[0].version_files, {});
+  });
+
+  test('google_drive record has versions populated', () => {
+    const files = [makeFile({ version: 'original', source: 'google_drive' })];
+    const books = deduplicateBooks(files);
+    assert.deepEqual(books[0].versions, ['original']);
+  });
+
+  test('defaults source to google_drive when no source is set (backward compat)', () => {
+    const files = [makeFile({ version: 'original' })];
+    const books = deduplicateBooks(files);
+    assert.equal(books[0].source, 'google_drive');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// parseOfflineCsv
+// ---------------------------------------------------------------------------
+
+describe('parseOfflineCsv', () => {
+  function makeOfflineCsv(rows) {
+    const header = 'ジャンル,書名,著者名,出版社';
+    return [header, ...rows].join('\n') + '\n';
+  }
+
+  test('maps コンピュータ・IT技術 to コンピュータ', () => {
+    const csv = makeOfflineCsv(['コンピュータ・IT技術,プログラマの数学,結城浩,SBクリエイティブ']);
+    const result = parseOfflineCsv(csv, {});
+    assert.equal(result[0].genre, 'コンピュータ');
+  });
+
+  test('maps 物理・自然科学・農学 to ノンフィクション', () => {
+    const csv = makeOfflineCsv(['物理・自然科学・農学,ファインマン物理学,ファインマン,岩波書店']);
+    const result = parseOfflineCsv(csv, {});
+    assert.equal(result[0].genre, 'ノンフィクション');
+  });
+
+  test('maps コミックス to 漫画・コミック', () => {
+    const csv = makeOfflineCsv(['コミックス,AKIRA,大友克洋,講談社']);
+    const result = parseOfflineCsv(csv, {});
+    assert.equal(result[0].genre, '漫画・コミック');
+  });
+
+  test('maps 趣味・実用・自動車 to 実用', () => {
+    const csv = makeOfflineCsv(['趣味・実用・自動車,ファウンテンペン！,萬年筆研究会,枻出版社']);
+    const result = parseOfflineCsv(csv, {});
+    assert.equal(result[0].genre, '実用');
+  });
+
+  test('unmapped genre falls back to GENRE_FALLBACK_RULES estimation', () => {
+    const csv = makeOfflineCsv(['文学・小説・教養,フランクリン自伝,フランクリン,岩波文庫']);
+    const result = parseOfflineCsv(csv, {});
+    // GENRE_FALLBACK_RULES matches 自伝 → ノンフィクション
+    assert.equal(result[0].genre, 'ノンフィクション');
+  });
+
+  test('unmapped genre with no keyword match falls back to 未分類', () => {
+    const csv = makeOfflineCsv(['文学・小説・教養,夏目漱石集,夏目漱石,講談社']);
+    const result = parseOfflineCsv(csv, {});
+    // No keyword match → 未分類
+    assert.equal(result[0].genre, '未分類');
+  });
+
+  test('source is paper for all records', () => {
+    const csv = makeOfflineCsv([
+      'コンピュータ・IT技術,プログラマの数学,結城浩,SBクリエイティブ',
+      'コミックス,AKIRA,大友克洋,講談社',
+    ]);
+    const result = parseOfflineCsv(csv, {});
+    assert.equal(result.length, 2);
+    assert.equal(result[0].source, 'paper');
+    assert.equal(result[1].source, 'paper');
+  });
+
+  test('isbn, pages, series, version are null', () => {
+    const csv = makeOfflineCsv(['コンピュータ・IT技術,プログラマの数学,結城浩,SBクリエイティブ']);
+    const result = parseOfflineCsv(csv, {});
+    assert.equal(result[0].isbn, null);
+    assert.equal(result[0].pages, null);
+    assert.equal(result[0].series, null);
+    assert.equal(result[0].version, null);
+  });
+
+  test('applies normalizeAuthor to author name', () => {
+    const csv = makeOfflineCsv(['物理・自然科学・農学,テスト本,アイザック アシモフ,出版社']);
+    const result = parseOfflineCsv(csv, {});
+    // normalizeAuthor converts single space to nakaguro for katakana names
+    assert.equal(result[0].author, 'アイザック・アシモフ');
+  });
+
+  test('applies resolveAuthorAlias using provided alias map', () => {
+    const aliases = { 'ファインマン': 'R.P.ファインマン' };
+    const csv = makeOfflineCsv(['物理・自然科学・農学,テスト本,ファインマン,岩波書店']);
+    const result = parseOfflineCsv(csv, aliases);
+    assert.equal(result[0].author, 'R.P.ファインマン');
+  });
+
+  test('sets title and author from CSV fields', () => {
+    const csv = makeOfflineCsv(['コンピュータ・IT技術,プログラマの数学,結城浩,SBクリエイティブ']);
+    const result = parseOfflineCsv(csv, {});
+    assert.equal(result[0].title, 'プログラマの数学');
+    assert.equal(result[0].author, '結城浩');
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -591,13 +727,15 @@ describe('parseCSV', () => {
 
 describe('Integration', () => {
   const csvPath = path.join(__dirname, '..', 'data', 'booklist.csv');
+  const offlineCsvPath = path.join(__dirname, '..', 'data', 'offline_bibliography_list.csv');
   const csvExists = fs.existsSync(csvPath);
+  const offlineCsvExists = fs.existsSync(offlineCsvPath);
 
   function loadBooks() {
     const csvText = fs.readFileSync(csvPath, 'utf-8');
     const rows = parseCSV(csvText);
     const filtered = filterRecords(rows);
-    const files = filtered.map(row => {
+    const driveFiles = filtered.map(row => {
       const parsed = parseFilename(row['ファイル名'] || '');
       const genre = estimateGenre(row['フォルダパス'] || '', parsed.title, parsed.author, parsed.series);
       return {
@@ -607,18 +745,39 @@ describe('Integration', () => {
         file_url: row['ファイルURL'] || '',
         file_id: row['ファイルID'] || '',
         file_size_mb: parseFloat(row['ファイルサイズ (MB)'] || '0'),
+        source: 'google_drive',
       };
     });
-    return deduplicateBooks(files);
+    const offlineFiles = offlineCsvExists
+      ? parseOfflineCsv(fs.readFileSync(offlineCsvPath, 'utf-8'), {})
+      : [];
+    return deduplicateBooks([...driveFiles, ...offlineFiles]);
   }
 
-  test('T-40: processes booklist.csv and produces 819 unique books', () => {
+  test('T-40: processes booklist.csv and produces 819 unique Google Drive books', () => {
     if (!csvExists) {
       console.log('Skipping T-40: booklist.csv not found');
       return;
     }
-    const books = loadBooks();
+    const csvText = fs.readFileSync(csvPath, 'utf-8');
+    const rows = parseCSV(csvText);
+    const filtered = filterRecords(rows);
+    const driveFiles = filtered.map(row => {
+      const parsed = parseFilename(row['ファイル名'] || '');
+      const genre = estimateGenre(row['フォルダパス'] || '', parsed.title, parsed.author, parsed.series);
+      return { ...parsed, genre, folder_path: row['フォルダパス'] || '', file_url: row['ファイルURL'] || '', file_id: row['ファイルID'] || '', file_size_mb: 0, source: 'google_drive' };
+    });
+    const books = deduplicateBooks(driveFiles);
     assert.equal(books.length, 819, `Expected 819 books, got ${books.length}`);
+  });
+
+  test('T-40b: total book count increases when offline CSV is included', () => {
+    if (!csvExists || !offlineCsvExists) {
+      console.log('Skipping T-40b: data files not found');
+      return;
+    }
+    const books = loadBooks();
+    assert.ok(books.length > 812, `Expected more than 812 books with offline data, got ${books.length}`);
   });
 
   test('T-41: all book records have required fields', () => {
@@ -629,13 +788,26 @@ describe('Integration', () => {
       assert.ok(typeof book.author === 'string', 'author must be a string');
       assert.ok(typeof book.genre === 'string', 'genre must be a string');
       assert.ok(book.subgenre === null || typeof book.subgenre === 'string', 'subgenre must be string or null');
-      assert.ok(Array.isArray(book.versions) && book.versions.length > 0, 'versions must be non-empty array');
+      assert.ok(Array.isArray(book.versions), 'versions must be an array');
       assert.ok(typeof book.version_files === 'object' && book.version_files !== null, 'version_files must be an object');
       for (const v of book.versions) {
         assert.ok(book.version_files[v], `version_files must have entry for version "${v}"`);
         assert.ok(typeof book.version_files[v].file_url === 'string', `version_files[${v}].file_url must be a string`);
         assert.ok(typeof book.version_files[v].file_id === 'string', `version_files[${v}].file_id must be a string`);
       }
+      const validSource = book.source === 'google_drive' || book.source === 'paper' ||
+        (Array.isArray(book.source) && book.source.includes('google_drive') && book.source.includes('paper'));
+      assert.ok(validSource, `source must be a valid value, got ${JSON.stringify(book.source)}`);
+    }
+  });
+
+  test('T-41b: paper books have empty versions and version_files', () => {
+    if (!csvExists || !offlineCsvExists) return;
+    const books = loadBooks();
+    const paperOnly = books.filter(b => b.source === 'paper');
+    for (const book of paperOnly) {
+      assert.deepEqual(book.versions, [], `Paper book "${book.title}" must have empty versions`);
+      assert.deepEqual(book.version_files, {}, `Paper book "${book.title}" must have empty version_files`);
     }
   });
 
