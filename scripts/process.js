@@ -7,6 +7,14 @@ const EXCLUDED_NAMES = ['self_check', '20120330_1246_33_0706', 'to_1733_912_003_
 
 const AUTHOR_ALIASES_PATH = path.join(__dirname, '..', 'data', 'author-aliases.json');
 const BOOK_CORRECTIONS_PATH = path.join(__dirname, '..', 'data', 'book-corrections.json');
+const OFFLINE_CSV_PATH = path.join(__dirname, '..', 'data', 'offline_bibliography_list.csv');
+
+const OFFLINE_GENRE_MAP = {
+  'コンピュータ・IT技術': 'コンピュータ',
+  '物理・自然科学・農学': 'ノンフィクション',
+  'コミックス': '漫画・コミック',
+  '趣味・実用・自動車': '実用',
+};
 
 const GENRE_RULES = [
   { test: (p) => p.includes('エッセイ'), genre: 'エッセイ' },
@@ -335,6 +343,38 @@ function resolveAuthorAlias(author, aliases) {
 }
 
 /**
+ * Parse the offline bibliography CSV and return file-like records with source: "paper".
+ * Applies genre mapping, author normalization, and alias resolution.
+ */
+function parseOfflineCsv(csvText, authorAliases) {
+  const rows = parseCSV(csvText);
+  return rows.map(row => {
+    const title = (row['書名'] || '').trim();
+    const rawAuthor = (row['著者名'] || '').trim();
+    const author = resolveAuthorAlias(normalizeAuthor(rawAuthor), authorAliases);
+    const rawGenre = (row['ジャンル'] || '').trim();
+    const mappedGenre = OFFLINE_GENRE_MAP[rawGenre];
+    const genre = mappedGenre !== undefined
+      ? mappedGenre
+      : estimateGenre('', title, author, null);
+    return {
+      title,
+      author,
+      isbn: null,
+      pages: null,
+      series: null,
+      version: null,
+      folder_path: null,
+      file_url: null,
+      file_id: null,
+      file_size_mb: null,
+      source: 'paper',
+      genre,
+    };
+  });
+}
+
+/**
  * Estimate genre from folder path using priority-ordered keyword matching.
  * Falls back to title/author/series keyword matching when folder path yields 未分類.
  */
@@ -395,8 +435,15 @@ function deduplicateBooks(files) {
 
     const version_files = {};
     for (const f of group) {
-      version_files[f.version] = { file_url: f.file_url, file_id: f.file_id };
+      if (f.version !== null) {
+        version_files[f.version] = { file_url: f.file_url, file_id: f.file_id };
+      }
     }
+
+    const sourceSet = new Set(group.map(f => f.source).filter(s => s === 'google_drive' || s === 'paper'));
+    const source = sourceSet.has('google_drive') && sourceSet.has('paper')
+      ? ['google_drive', 'paper']
+      : sourceSet.has('paper') ? 'paper' : 'google_drive';
 
     books.push({
       title: original.title,
@@ -406,8 +453,9 @@ function deduplicateBooks(files) {
       series: original.series,
       isbn,
       pages,
-      versions: group.map(f => f.version),
+      versions: group.map(f => f.version).filter(v => v !== null),
       version_files,
+      source,
     });
   }
 
@@ -449,7 +497,7 @@ function main() {
   const nonPdfCount = rows.filter(r => r['MIME タイプ'] !== 'application/pdf').length;
   const managementCount = rows.length - filtered.length - nonPdfCount;
 
-  const files = filtered.map(row => {
+  const driveFiles = filtered.map(row => {
     const parsed = parseFilename(row['ファイル名'] || '');
     const normalizedAuthor = resolveAuthorAlias(normalizeAuthor(parsed.author), authorAliases);
     const corrected = applyBookCorrections(parsed.title, normalizedAuthor, parsed.pages, parsed.isbn, bookCorrections);
@@ -465,8 +513,15 @@ function main() {
       file_url: row['ファイルURL'] || '',
       file_id: row['ファイルID'] || '',
       file_size_mb: parseFloat(row['ファイルサイズ (MB)'] || '0'),
+      source: 'google_drive',
     };
   });
+
+  const offlineFiles = fs.existsSync(OFFLINE_CSV_PATH)
+    ? parseOfflineCsv(fs.readFileSync(OFFLINE_CSV_PATH, 'utf-8'), authorAliases)
+    : [];
+
+  const files = [...driveFiles, ...offlineFiles];
 
   const books = deduplicateBooks(files);
 
@@ -483,20 +538,25 @@ function main() {
     pages: book.pages,
     versions: book.versions,
     version_files: book.version_files,
+    source: book.source,
   }));
 
   const outPath = path.join(__dirname, '..', 'data', 'books.json');
   fs.writeFileSync(outPath, JSON.stringify(output, null, 2), 'utf-8');
 
+  const paperCount = output.filter(b => b.source === 'paper' || (Array.isArray(b.source) && b.source.includes('paper'))).length;
+  const bothCount = output.filter(b => Array.isArray(b.source)).length;
+
   console.log('処理完了');
-  console.log(`  入力レコード数: ${rows.length}`);
+  console.log(`  入力レコード数（Google Drive）: ${rows.length}`);
   console.log(`  除外レコード数: ${rows.length - filtered.length} (非PDF: ${nonPdfCount}, 管理用ファイル: ${managementCount})`);
   console.log(`  パース済みファイル数: ${filtered.length}`);
-  console.log(`  統合後書籍数: ${output.length}`);
+  console.log(`  入力レコード数（オフライン書誌）: ${offlineFiles.length}`);
+  console.log(`  統合後書籍数: ${output.length}（うち紙書籍のみ: ${paperCount - bothCount}、デジタル・紙両方: ${bothCount}）`);
   console.log(`  出力ファイル: data/books.json`);
 }
 
-module.exports = { parseCSV, filterRecords, parseFilename, extractAuthorFromTitle, applyBookCorrections, normalizeAuthor, resolveAuthorAlias, estimateGenre, estimateSubgenre, deduplicateBooks, generateId };
+module.exports = { parseCSV, filterRecords, parseFilename, extractAuthorFromTitle, applyBookCorrections, normalizeAuthor, resolveAuthorAlias, parseOfflineCsv, estimateGenre, estimateSubgenre, deduplicateBooks, generateId, OFFLINE_GENRE_MAP };
 
 if (require.main === module) {
   main();

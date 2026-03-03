@@ -1,7 +1,8 @@
 # コンポーネント設計
 
 **作成日**: 2026-02-28
-**ステータス**: ドラフト v0.1
+**更新日**: 2026-03-03
+**ステータス**: ドラフト v0.2
 **対象フェーズ**: フェーズ1（静的SPA）
 
 ---
@@ -175,8 +176,17 @@ App
 | タイトル | `book.title` |
 | 著者名 | `book.author` |
 | ジャンル | `book.genre`（バッジ表示） |
-| バージョン | `book.versions`（アイコンまたはバッジ） |
+| バージョン | `book.versions`（アイコンまたはバッジ）。`source === "paper"` の場合は非表示 |
 | シリーズ名 | `book.series`（存在する場合のみ） |
+| 保有形態バッジ | `book.source` に基づくバッジ（下記参照） |
+
+**保有形態バッジ**:
+
+| `source` | バッジ | スタイル |
+|---------|--------|---------|
+| `"google_drive"` | `PDF` | 緑系 |
+| `"paper"` | `紙` | 茶系 |
+| `["google_drive", "paper"]` | `PDF` `紙` | 両方表示 |
 
 **インタラクション**:
 - カード全体クリック → `onSelect(book)` を呼び出す
@@ -234,7 +244,7 @@ App
 | 項目 | 内容 |
 |------|------|
 | 役割 | 保有バージョンごとの Google Drive リンクボタンを表示する |
-| Props | `versions`, `versionFiles` |
+| Props | `versions`, `versionFiles`, `source` |
 
 **ボタンラベル**:
 
@@ -245,6 +255,7 @@ App
 | `ipad3` | iPad版で開く |
 
 **仕様**:
+- `source` が `"paper"` のみの場合は何も表示しない（コンポーネント自体を非表示）
 - 各ボタンクリックで Google Drive の PDF を新しいタブで開く
 - `versionFiles[version].file_url` を使用する（バージョンごとに異なるURL）
 

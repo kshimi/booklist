@@ -20,6 +20,10 @@ export default function BookDetailPage({ book, bookMetadata, onClose, onSelectAu
 
   const preloaded = book.isbn ? bookMetadata?.[book.isbn] : undefined;
 
+  const sources = Array.isArray(book.source) ? book.source : (book.source ? [book.source] : ['google_drive']);
+  const hasDrive = sources.includes('google_drive');
+  const hasPaper = sources.includes('paper');
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
@@ -46,8 +50,22 @@ export default function BookDetailPage({ book, bookMetadata, onClose, onSelectAu
           {/* F-10: Basic info */}
           <BookBasicInfo book={book} onSelectAuthor={handleAuthorSelect} />
 
-          {/* Google Drive links */}
-          <BookVersionLinks versions={book.versions} versionFiles={book.version_files} />
+          {/* Google Drive links (digital only) */}
+          {hasDrive && (
+            <BookVersionLinks versions={book.versions} versionFiles={book.version_files} />
+          )}
+
+          {/* Paper book label */}
+          {hasPaper && !hasDrive && (
+            <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded">
+              <span>紙書籍として所持</span>
+            </div>
+          )}
+          {hasPaper && hasDrive && (
+            <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded">
+              <span>紙書籍としても所持</span>
+            </div>
+          )}
 
           {/* F-11: External book data */}
           <BookExternalInfo isbn={book.isbn} preloaded={preloaded} />

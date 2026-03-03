@@ -2,7 +2,7 @@
 
 **作成日**: 2026-02-28
 **更新日**: 2026-03-03
-**ステータス**: ドラフト v0.2
+**ステータス**: ドラフト v0.3
 **対象フェーズ**: フェーズ1（静的SPA）
 
 ---
@@ -13,17 +13,20 @@
 
 ```
 【ビルド前工程（データ処理）】
-Google Drive
-  └─ Google Apps Script で CSV 取得
-        │
-        ▼
-data/booklist.csv
-  └─ node scripts/process.js
+Google Drive                    data/offline_bibliography_list.csv
+  └─ Google Apps Script で         （紙書籍リスト・手動作成）
+     CSV 取得
+        │                                │
+        ▼                                │
+data/booklist.csv                        │
+  └─ node scripts/process.js ───────────┘
         │  ・CSVパース・ファイル名メタデータ抽出
+        │  ・オフライン書誌CSVパース・ジャンルマッピング
+        │  ・著者名正規化・エイリアス解決（両ソース共通）
         │  ・ジャンル推定（フォルダパスベース）
-        │  ・重複排除・書籍統合
+        │  ・重複排除・書籍統合・source フィールド付与
         ▼
-data/books.json（812件）
+data/books.json（882件）
 
 data/books.json
   └─ node scripts/enrich.js          ← 手動実行（任意のタイミング）
@@ -39,8 +42,11 @@ PC または iPad のブラウザ
         │  books.json と book-metadata.json を並行 fetch
         │
         ├─ 書籍一覧（検索・フィルタ・ソート）
+        │    └─ 書籍カードに source バッジ（PDF / 紙）を表示
         ├─ 書籍詳細
-        │    ├─ Google Drive リンク → PDF を Google Drive で開く
+        │    ├─ source === "google_drive" → Google Drive リンク表示
+        │    ├─ source === "paper" → 「紙書籍として所持」を表示（リンクなし）
+        │    ├─ source が両方 → リンクと「紙書籍としても所持」を表示
         │    ├─ book-metadata.json にデータあり → 即時表示
         │    └─ book-metadata.json にデータなし → openBD / Google Books をランタイム呼び出し
         └─ 統計ダッシュボード（ジャンル分布・著者ランキング）
@@ -67,6 +73,7 @@ PC または iPad のブラウザ
 booklist/
 ├── data/
 │   ├── booklist.csv              # Google Apps Script 出力（入力データ）
+│   ├── offline_bibliography_list.csv  # 紙書籍リスト（手動作成・入力データ）
 │   ├── books.json                # process.js 生成の蔵書カタログ
 │   ├── book-metadata.json        # enrich.js 生成の外部書誌情報
 │   ├── author-aliases.json       # 著者名エイリアステーブル
@@ -94,17 +101,22 @@ booklist/
 #### process.js パイプライン
 
 ```
-data/booklist.csv
-    │
-    ▼ F-1: CSVインポート・メタデータパース
-    │  ・application/pdf のみ対象
-    │  ・管理用ファイルを除外（self_check 等）
-    │  ・ファイル名から順次抽出:
-    │      バージョン → 拡張子除去 → ISBN → ページ数
-    │      → シリーズ名 → 著者名 → タイトル
-    │  ・著者名補完パターン（P-A: 欧文名, P-B: 漢字氏名）
-    │  ・book-corrections.json による最終上書き
-    │
+data/booklist.csv              data/offline_bibliography_list.csv
+    │                                  │
+    ▼ F-1: CSVインポート・             ▼ F-1b: オフラインCSVパース
+    │       メタデータパース            │  ・ジャンルマッピングテーブルで変換
+    │  ・application/pdf のみ対象      │  ・著者名正規化・エイリアス解決
+    │  ・管理用ファイルを除外           │  ・source = "paper" を付与
+    │  ・ファイル名から順次抽出:        │
+    │      バージョン → 拡張子除去     │
+    │      → ISBN → ページ数          │
+    │      → シリーズ名 → 著者名      │
+    │      → タイトル                 │
+    │  ・著者名補完パターン             │
+    │  ・book-corrections.json 上書き  │
+    │  ・source = "google_drive"       │
+    └──────────────────┬───────────────┘
+                       │ レコード結合
     ▼ F-2: ジャンル推定（大ジャンル）
     │  ・フォルダパスのキーワードマッチ（優先順位付き）
     │  ・11ジャンル（SF / フィクション（日本）/ エッセイ / …/ 未分類）
@@ -115,9 +127,10 @@ data/booklist.csv
     ▼ F-3: 重複排除・書籍統合
     │  ・統合キー: ISBN あり → ISBN、なし → タイトル
     │  ・オリジナル版のタイトル・著者を優先
+    │  ・source を集約（単一 or 配列）
     │
     ▼ F-4: books.json 生成
-       ・UTF-8、812件（2026-03-03時点）
+       ・UTF-8、882件（2026-03-03時点）
 ```
 
 #### enrich.js パイプライン（手動実行）
@@ -159,9 +172,18 @@ data/book-metadata.json（既存データ。なければ空オブジェクト）
   "version_files": {
     "original": { "file_url": "https://drive.google.com/...", "file_id": "Google Drive ファイルID" },
     "kindle":   { "file_url": "https://drive.google.com/...", "file_id": "Google Drive ファイルID" }
-  }
+  },
+  "source": "google_drive"
 }
 ```
+
+`source` フィールドの値:
+
+| 値 | 意味 |
+|---|------|
+| `"google_drive"` | Google Drive PDF のみ |
+| `"paper"` | 紙書籍のみ |
+| `["google_drive", "paper"]` | デジタル・紙の両方を所持 |
 
 ### book-metadata.json のデータ構造（1レコード）
 
