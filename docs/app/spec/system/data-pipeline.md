@@ -1,7 +1,8 @@
 # データパイプライン設計
 
 **作成日**: 2026-02-28
-**ステータス**: ドラフト v0.1
+**更新日**: 2026-03-03
+**ステータス**: ドラフト v0.2
 **対象フェーズ**: フェーズ1（静的SPA）
 
 ---
@@ -12,16 +13,20 @@
 ## 1. 概要
 
 データパイプラインはビルド前工程として Node.js スクリプト（`scripts/process.js`）で実行する。
-`data/booklist.csv` を入力として受け取り、パース・ジャンル推定・重複排除を経て `data/books.json` を出力する。
+`data/booklist.csv`（Google Drive）と `data/offline_bibliography_list.csv`（紙書籍）の2入力を受け取り、パース・ジャンル推定・重複排除を経て `data/books.json` を出力する。
 
 ```
-data/booklist.csv
-    │
-    ├─ ステップ1: CSV読み込み・フィルタリング
-    ├─ ステップ2: ファイル名パース（メタデータ抽出）
-    ├─ ステップ3: ジャンル推定（フォルダパスベース）
-    ├─ ステップ4: 重複排除・書籍統合
-    └─ ステップ5: books.json 出力
+data/booklist.csv              data/offline_bibliography_list.csv
+    │                                  │
+    ├─ ステップ1: CSV読み込み・         ├─ ステップ1b: オフラインCSVパース
+    │  フィルタリング                   │  （ジャンルマッピング・著者名正規化）
+    ├─ ステップ2: ファイル名パース       │
+    │  （メタデータ抽出）               │
+    └──────────────────┬───────────────┘
+                       │ レコード結合
+                       ├─ ステップ3: ジャンル推定（フォルダパスベース）
+                       ├─ ステップ4: 重複排除・書籍統合
+                       └─ ステップ5: books.json 出力
 ```
 
 ---
@@ -34,6 +39,7 @@ node scripts/process.js
 
 **前提条件**:
 - `data/booklist.csv` が存在すること
+- `data/offline_bibliography_list.csv` が存在すること（存在しない場合は Google Drive データのみで処理する）
 - Node.js がインストール済みであること（外部ライブラリ不要）
 
 **出力**:
@@ -76,6 +82,58 @@ const filtered = rows.filter(row =>
   row.mimeType === 'application/pdf' &&
   !EXCLUDED_NAMES.some(name => row.filename.includes(name))
 );
+```
+
+---
+
+### ステップ1b: オフラインCSVパース
+
+#### 入力形式
+
+| カラム名 | 内容 |
+|---------|------|
+| ジャンル | 紙書籍のジャンル（マッピング対象） |
+| 書名 | タイトル |
+| 著者名 | 著者名（正規化処理を適用） |
+| 出版社 | 出版社名（現時点では books.json に含めない） |
+
+#### ジャンルマッピング
+
+```javascript
+const OFFLINE_GENRE_MAP = {
+  'コンピュータ・IT技術': 'コンピュータ',
+  '物理・自然科学・農学': 'ノンフィクション',
+  'コミックス': '漫画・コミック',
+  '趣味・実用・自動車': '実用',
+};
+// 上記マップにない場合は GENRE_FALLBACK_RULES をタイトル・著者名に適用する
+```
+
+#### 著者名処理
+
+F-1 と同一の正規化処理を適用する:
+
+```javascript
+const normalizedAuthor = resolveAuthorAlias(normalizeAuthor(row['著者名']));
+```
+
+#### 出力レコード
+
+```javascript
+{
+  title: row['書名'],
+  author: normalizedAuthor,
+  isbn: null,
+  pages: null,
+  series: null,
+  version: null,
+  folder_path: null,
+  file_url: null,
+  file_id: null,
+  file_size_mb: null,
+  source: 'paper',
+  genre: mappedGenre,  // ジャンルマッピング・フォールバックルール適用後
+}
 ```
 
 ---
@@ -216,11 +274,21 @@ if (isbn !== null) {
 | フィールド | ルール |
 |-----------|-------|
 | `title`, `author`, `series` | `version === 'original'` のレコードの値を優先する。オリジナル版がない場合は最初のレコードの値を使用する |
-| `versions` | 全バージョンをリストで保持する（例: `["original", "kindle"]`） |
-| `version_files` | 各バージョンの `file_url` と `file_id` をマップで保持する。全バージョン分を収集する（オリジナル版のみではない） |
+| `versions` | 全バージョンをリストで保持する（例: `["original", "kindle"]`）。紙書籍のみの場合は `[]` |
+| `version_files` | 各バージョンの `file_url` と `file_id` をマップで保持する。紙書籍のみの場合は `{}` |
 | `genre` | 下記のジャンル優先度テーブルを参照し、最も優先度の高いジャンルを採用する |
 | `isbn` | `null` でない値を優先する |
 | `pages` | `null` でない値を優先する |
+| `source` | 下記の source 集約ルールを参照 |
+
+#### `source` 集約ルール
+
+```javascript
+const sources = new Set(group.map(r => r.source));
+const source = sources.has('google_drive') && sources.has('paper')
+  ? ['google_drive', 'paper']
+  : sources.has('google_drive') ? 'google_drive' : 'paper';
+```
 
 #### ジャンル優先度テーブル（重複排除時）
 
@@ -254,6 +322,7 @@ if (isbn !== null) {
   "title": "書名",
   "author": "著者名",
   "genre": "フィクション（日本）",
+  "subgenre": null,
   "series": "シリーズ名 または null",
   "isbn": "9784101020112 または null",
   "pages": 312,
@@ -261,7 +330,26 @@ if (isbn !== null) {
   "version_files": {
     "original": { "file_url": "https://drive.google.com/file/d/XXXXX/view", "file_id": "XXXXX" },
     "kindle":   { "file_url": "https://drive.google.com/file/d/YYYYY/view", "file_id": "YYYYY" }
-  }
+  },
+  "source": "google_drive"
+}
+```
+
+紙書籍の場合の出力例:
+
+```json
+{
+  "id": "title_a1b2c3d4",
+  "title": "プログラマの数学",
+  "author": "結城浩",
+  "genre": "コンピュータ",
+  "subgenre": null,
+  "series": null,
+  "isbn": null,
+  "pages": null,
+  "versions": [],
+  "version_files": {},
+  "source": "paper"
 }
 ```
 
