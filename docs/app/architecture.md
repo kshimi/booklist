@@ -26,7 +26,7 @@ data/booklist.csv                        │
         │  ・ジャンル推定（フォルダパスベース）
         │  ・重複排除・書籍統合・source フィールド付与
         ▼
-data/books.json（870件程度）
+data/books.json（882件）
 
 data/books.json
   └─ node scripts/enrich.js          ← 手動実行（任意のタイミング）
@@ -130,7 +130,7 @@ data/booklist.csv              data/offline_bibliography_list.csv
     │  ・source を集約（単一 or 配列）
     │
     ▼ F-4: books.json 生成
-       ・UTF-8、870件程度（2026-03-03時点推定）
+       ・UTF-8、882件（2026-03-03時点）
 ```
 
 #### enrich.js パイプライン（手動実行）

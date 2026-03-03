@@ -777,7 +777,7 @@ describe('Integration', () => {
       return;
     }
     const books = loadBooks();
-    assert.ok(books.length > 812, `Expected more than 812 books with offline data, got ${books.length}`);
+    assert.equal(books.length, 882, `Expected 882 books with offline data, got ${books.length}`);
   });
 
   test('T-41: all book records have required fields', () => {
