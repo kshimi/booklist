@@ -19,10 +19,19 @@ const TODAY = new Date().toISOString().slice(0, 10);
 
 function isbn10to13(isbn10) {
   if (isbn10.length !== 10) return null;
-  const base = '978' + isbn10.slice(0, 9);
+  // Validate ISBN-10 check digit
+  const body = isbn10.slice(0, 9);
+  if (!/^\d{9}$/.test(body)) return null;
+  const sum10 = body.split('').reduce((acc, d, i) => acc + parseInt(d, 10) * (10 - i), 0);
+  const expected = (11 - (sum10 % 11)) % 11;
+  const checkChar = isbn10[9].toUpperCase();
+  const actual = checkChar === 'X' ? 10 : parseInt(checkChar, 10);
+  if (isNaN(actual) || actual !== expected) return null;
+  // Convert to ISBN-13
+  const base = '978' + body;
   const weights = [1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3];
-  const sum = base.split('').reduce((acc, d, i) => acc + parseInt(d, 10) * weights[i], 0);
-  const check = (10 - (sum % 10)) % 10;
+  const sum13 = base.split('').reduce((acc, d, i) => acc + parseInt(d, 10) * weights[i], 0);
+  const check = (10 - (sum13 % 10)) % 10;
   return base + check;
 }
 
@@ -47,11 +56,23 @@ function get(url) {
 }
 
 function getJson(url) {
-  return get(url).then(body => JSON.parse(body));
+  return withRetry(() => get(url).then(body => JSON.parse(body)));
 }
 
 function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function withRetry(fn, maxAttempts = 3, baseDelay = 1000) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const isRetryable = /HTTP (429|5\d\d)/.test(err.message);
+      if (!isRetryable || attempt === maxAttempts) throw err;
+      await wait(baseDelay * attempt);
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -100,7 +121,7 @@ const ndlParser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: 
 
 async function fetchNDL(isbn13) {
   const url = `https://ndlsearch.ndl.go.jp/api/sru?operation=searchRetrieve&recordSchema=dcndl&query=isbn=${isbn13}&maximumRecords=1`;
-  const xml = await get(url);
+  const xml = await withRetry(() => get(url));
   const parsed = ndlParser.parse(xml);
 
   const records = parsed?.['srw:searchRetrieveResponse']?.['srw:records']?.['srw:record'];

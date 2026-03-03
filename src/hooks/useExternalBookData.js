@@ -78,7 +78,7 @@ export function useExternalBookData(isbn, preloaded) {
       const hasData = preloaded.coverUrl || preloaded.publisher ||
                       preloaded.publishedYear || preloaded.description;
       if (hasData) {
-        setData({ ...preloaded, source: preloaded.sources?.[0] ?? 'preloaded' });
+        setData({ ...preloaded, source: 'preloaded' });
         setStatus('loaded');
       } else {
         setStatus('not_found');
