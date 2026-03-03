@@ -31,7 +31,7 @@ data/books.json
         │  ・書影URL・出版社・出版年・あらすじを取得
         │  ・差分取得（未取得ISBNのみ対象）
         ▼
-data/book-metadata.json              ← Git管理対象外
+data/book-metadata.json              ← Git管理対象
 
 【実行時（ブラウザ）】
 PC または iPad のブラウザ
@@ -68,7 +68,7 @@ booklist/
 ├── data/
 │   ├── booklist.csv              # Google Apps Script 出力（入力データ）
 │   ├── books.json                # process.js 生成の蔵書カタログ
-│   ├── book-metadata.json        # enrich.js 生成の外部書誌情報（Git管理対象外）
+│   ├── book-metadata.json        # enrich.js 生成の外部書誌情報
 │   ├── author-aliases.json       # 著者名エイリアステーブル
 │   └── book-corrections.json     # 書籍タイトル・著者名手動補正テーブル
 ├── scripts/

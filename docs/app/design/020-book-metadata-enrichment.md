@@ -122,7 +122,7 @@ function isbn10to13(isbn10) {
 
 ### データファイル: `data/book-metadata.json`
 
-**Git管理対象外。** `.gitignore` に追加する。実行環境ごとに `enrich.js` を手動実行して生成する。
+**Git管理対象。** `enrich.js` 実行後、更新されたファイルをコミットしてリポジトリで共有する。
 
 #### スキーマ
 
@@ -253,8 +253,7 @@ bookMetadata[isbn] が null または undefined（enrichスクリプト未実行
 | ファイル | 変更種別 | 変更内容 |
 |---------|---------|---------|
 | `scripts/enrich.js` | **新規作成** | 書誌情報事前取得スクリプト |
-| `data/book-metadata.json` | **新規生成** | enrich.js の出力ファイル（Git管理対象外） |
-| `.gitignore` | **変更** | `data/book-metadata.json` を追加 |
+| `data/book-metadata.json` | **新規生成** | enrich.js の出力ファイル（Git管理対象） |
 | `src/hooks/useBooks.js` | **変更** | `book-metadata.json` の並行fetchを追加、`bookMetadata` を返す |
 | `src/hooks/useExternalBookData.js` | **変更** | `preloaded` 引数を追加し、存在する場合は即時返却 |
 | `src/components/BookExternalInfo.jsx` | **変更** | `preloaded` props を受け取り `useExternalBookData` に渡す |
@@ -269,7 +268,7 @@ bookMetadata[isbn] が null または undefined（enrichスクリプト未実行
 | カテゴリ | 影響 |
 |---------|------|
 | データパイプライン | `enrich.js` を新規追加。`process.js` は変更なし |
-| `data/book-metadata.json` | 新規ファイル。Git管理対象外。`process.js` 再実行でも消えない |
+| `data/book-metadata.json` | 新規ファイル。Git管理対象。`process.js` 再実行でも消えない |
 | `books.json` | 変更なし（スキーマ維持） |
 | `useBooks.js` | 返り値に `bookMetadata` を追加するが、既存の `books` / `loading` / `error` は変わらない |
 | `useExternalBookData.js` | 引数追加（`preloaded` はオプション）。既存の呼び出し元は変更なしで動作継続 |

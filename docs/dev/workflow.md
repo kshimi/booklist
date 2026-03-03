@@ -192,15 +192,13 @@ Steps:
    node scripts/enrich.js
    ```
 2. Review the completion summary printed to stdout (hit count per API, total unfetched).
-3. `data/book-metadata.json` is **not committed to Git** — it is generated locally in each
-   environment and excluded via `.gitignore`.
+3. Commit `data/book-metadata.json` to share the enriched metadata via the repository.
 
 Options:
 - `--force` — re-fetch all ISBNs regardless of existing data
 - `--skip-google` — skip Google Books API calls (conserves the daily quota)
 
-When Claude Code is asked to assist with this task, run the script and report the summary.
-Do not commit `data/book-metadata.json`.
+When Claude Code is asked to assist with this task, run the script, report the summary, and commit the updated file.
 
 ## UI Component Reference
 

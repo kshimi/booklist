@@ -285,8 +285,7 @@ npm run dev
 
 #### 注意事項
 
-- `data/book-metadata.json` は **Git管理対象外**です。コミットしないでください
-- 環境を新しくセットアップした場合は、再度 `enrich.js` を実行してファイルを生成してください
+- `data/book-metadata.json` は **Git管理対象**です。`enrich.js` 実行後にコミットしてください
 - `book-metadata.json` がない状態でも SPA は動作します（書籍詳細開時にランタイムAPIコールにフォールバック）
 
 ---
