@@ -801,6 +801,26 @@
     "source": "google_drive"
   },
   {
+    "id": "title_c981df48",
+    "title": "Concrete Mathematics",
+    "author": "Graham - Knuth - Patashnik",
+    "genre": "コンピュータ",
+    "subgenre": null,
+    "series": null,
+    "isbn": null,
+    "pages": null,
+    "versions": [
+      "original"
+    ],
+    "version_files": {
+      "original": {
+        "file_url": "https://drive.google.com/file/d/0B-4fV-cHXgIoOWFZRDJaWUJSN2c/view?usp=drivesdk&resourcekey=0-GRSBao36IggWN1iTV7QA_A",
+        "file_id": "0B-4fV-cHXgIoOWFZRDJaWUJSN2c"
+      }
+    },
+    "source": "google_drive"
+  },
+  {
     "id": "title_7fd1806b",
     "title": "DIY工作 木工家具入門",
     "author": "スタジオTACクリエイティブ",
@@ -815,8 +835,8 @@
   },
   {
     "id": "4890524444",
-    "title": "GNU Emacs デブラ キャメロン",
-    "author": "",
+    "title": "GNU Emacs",
+    "author": "デブラ キャメロン",
     "genre": "実用",
     "subgenre": null,
     "series": null,
@@ -839,26 +859,6 @@
       "original": {
         "file_url": "https://drive.google.com/file/d/1xxNHlm-ekcXRhAU5Hja4tHtg5Cx-nR8V/view?usp=drivesdk",
         "file_id": "1xxNHlm-ekcXRhAU5Hja4tHtg5Cx-nR8V"
-      }
-    },
-    "source": "google_drive"
-  },
-  {
-    "id": "title_9af46b6c",
-    "title": "Graham - Knuth - Patashnik - Concrete Mathematics",
-    "author": "",
-    "genre": "コンピュータ",
-    "subgenre": null,
-    "series": null,
-    "isbn": null,
-    "pages": null,
-    "versions": [
-      "original"
-    ],
-    "version_files": {
-      "original": {
-        "file_url": "https://drive.google.com/file/d/0B-4fV-cHXgIoOWFZRDJaWUJSN2c/view?usp=drivesdk&resourcekey=0-GRSBao36IggWN1iTV7QA_A",
-        "file_id": "0B-4fV-cHXgIoOWFZRDJaWUJSN2c"
       }
     },
     "source": "google_drive"
@@ -925,8 +925,8 @@
   },
   {
     "id": "4274066304",
-    "title": "Joel on Software Joel Spolsky",
-    "author": "",
+    "title": "Joel on Software",
+    "author": "Joel Spolsky",
     "genre": "実用",
     "subgenre": null,
     "series": null,
@@ -1023,8 +1023,8 @@
   },
   {
     "id": "1874105162",
-    "title": "Mazda Miata Mx5 Enthusiasts Shop Manual Rod Grainger",
-    "author": "",
+    "title": "Mazda Miata Mx5 Enthusiasts Shop Manual",
+    "author": "Rod Grainger",
     "genre": "実用",
     "subgenre": null,
     "series": null,
@@ -1951,8 +1951,8 @@
   },
   {
     "id": "4621045938",
-    "title": "いかにして問題をとくか G． ポリア",
-    "author": "",
+    "title": "いかにして問題をとくか",
+    "author": "G． ポリア",
     "genre": "実用",
     "subgenre": null,
     "series": null,
@@ -2274,8 +2274,8 @@
   },
   {
     "id": "4274068242",
-    "title": "インターネットのカタチ-もろさが織り成す粘り強い世界- あきみち",
-    "author": "",
+    "title": "インターネットのカタチ-もろさが織り成す粘り強い世界",
+    "author": "あきみち",
     "genre": "実用",
     "subgenre": null,
     "series": null,
@@ -2354,8 +2354,8 @@
   },
   {
     "id": "4764105446",
-    "title": "ウルカヌスの群像-ブッシュ政権とイラク戦争 ジェームズ マン",
-    "author": "",
+    "title": "ウルカヌスの群像-ブッシュ政権とイラク戦争",
+    "author": "ジェームズ マン",
     "genre": "ノンフィクション",
     "subgenre": "その他ノンフィクション",
     "series": null,
@@ -3311,8 +3311,8 @@
   },
   {
     "id": "4810185273",
-    "title": "オブジェクト指向方法論OMT-モデル化と設計 ジェームズ ランボー",
-    "author": "",
+    "title": "オブジェクト指向方法論OMT-モデル化と設計",
+    "author": "ジェームズ ランボー",
     "genre": "実用",
     "subgenre": null,
     "series": null,
@@ -5618,8 +5618,8 @@
   },
   {
     "id": "4320025636",
-    "title": "スーパーエンジニアへの道-技術リーダーシップの人間学 G．M． ワインバーグ",
-    "author": "",
+    "title": "スーパーエンジニアへの道-技術リーダーシップの人間学",
+    "author": "G．M． ワインバーグ",
     "genre": "実用",
     "subgenre": null,
     "series": null,
@@ -5673,8 +5673,8 @@
   },
   {
     "id": "482224816X",
-    "title": "スティーブ・ジョブズ 驚異のプレゼン-人々を惹きつける18の法則 カーマイン・ガロ",
-    "author": "",
+    "title": "スティーブ・ジョブズ 驚異のプレゼン-人々を惹きつける18の法則",
+    "author": "カーマイン・ガロ",
     "genre": "実用",
     "subgenre": null,
     "series": null,
@@ -5753,8 +5753,8 @@
   },
   {
     "id": "4042770010",
-    "title": "セブン・イヤーズ・イン・チベット-チベットの7年 ハインリヒ ハラー",
-    "author": "",
+    "title": "セブン・イヤーズ・イン・チベット-チベットの7年",
+    "author": "ハインリヒ ハラー",
     "genre": "フィクション",
     "subgenre": "その他フィクション",
     "series": "角川文庫ソフィア／1",
@@ -6728,8 +6728,8 @@
   },
   {
     "id": "489522189X",
-    "title": "ドライビングテクニック エリック カールソン",
-    "author": "",
+    "title": "ドライビングテクニック",
+    "author": "エリック カールソン",
     "genre": "運転",
     "subgenre": null,
     "series": null,
@@ -7426,8 +7426,8 @@
   },
   {
     "id": "4756139655",
-    "title": "ビーイング・デジタル - ビットの時代 新装版 ニコラス・ネグロポンテ",
-    "author": "",
+    "title": "ビーイング・デジタル - ビットの時代 新装版",
+    "author": "ニコラス・ネグロポンテ",
     "genre": "実用",
     "subgenre": null,
     "series": null,
@@ -7579,8 +7579,8 @@
   },
   {
     "id": "4797329157",
-    "title": "ファインマンの手紙 リチャード P ファインマン",
-    "author": "",
+    "title": "ファインマンの手紙",
+    "author": "リチャード P ファインマン",
     "genre": "エッセイ",
     "subgenre": null,
     "series": null,
@@ -8222,8 +8222,8 @@
   },
   {
     "id": "4320024834",
-    "title": "プログラミング言語C-ANSI規格準拠 B．W． カーニハン",
-    "author": "",
+    "title": "プログラミング言語C-ANSI規格準拠",
+    "author": "B．W． カーニハン",
     "genre": "実用",
     "subgenre": null,
     "series": null,
@@ -8365,8 +8365,8 @@
   },
   {
     "id": "4620310867",
-    "title": "ヘッセからの手紙-混沌を生き抜くために ヘルマン ヘッセ",
-    "author": "",
+    "title": "ヘッセからの手紙-混沌を生き抜くために",
+    "author": "ヘルマン ヘッセ",
     "genre": "エッセイ",
     "subgenre": null,
     "series": null,
@@ -8743,8 +8743,8 @@
   },
   {
     "id": "4764103834",
-    "title": "マクナマラ回顧録 ベトナムの悲劇と教訓 ロバート・マクナマラ",
-    "author": "",
+    "title": "マクナマラ回顧録 ベトナムの悲劇と教訓",
+    "author": "ロバート・マクナマラ",
     "genre": "ノンフィクション",
     "subgenre": "歴史・伝記",
     "series": null,
@@ -9310,8 +9310,8 @@
   },
   {
     "id": "4309205283",
-    "title": "ラウィーニア アーシュラ・K・ル=グウィン",
-    "author": "",
+    "title": "ラウィーニア",
+    "author": "アーシュラ・K・ル=グウィン",
     "genre": "フィクション",
     "subgenre": "その他フィクション",
     "series": null,
@@ -9692,8 +9692,8 @@
   },
   {
     "id": "4794217315",
-    "title": "わがままこそ最高の美徳 ヘルマン ヘッセ",
-    "author": "",
+    "title": "わがままこそ最高の美徳",
+    "author": "ヘルマン ヘッセ",
     "genre": "未分類",
     "subgenre": null,
     "series": null,
@@ -10176,8 +10176,8 @@
   },
   {
     "id": "4488618030",
-    "title": "異星の客 創元SF文庫 RAハインライン",
-    "author": "",
+    "title": "異星の客 創元SF文庫",
+    "author": "RAハインライン",
     "genre": "SF",
     "subgenre": null,
     "series": null,
@@ -10743,8 +10743,8 @@
   },
   {
     "id": "4006031467",
-    "title": "科学は不確かだ！ R．P．ファインマン 著 大貫 昌子 訳",
-    "author": "",
+    "title": "科学は不確かだ！ 大貫 昌子 訳",
+    "author": "R．P．ファインマン",
     "genre": "ノンフィクション",
     "subgenre": "科学・技術",
     "series": null,
@@ -10799,8 +10799,8 @@
   },
   {
     "id": "4764105233",
-    "title": "果てしなき論争 ベトナム戦争の悲劇を繰り返さないために ロバートマクナマラ",
-    "author": "",
+    "title": "果てしなき論争 ベトナム戦争の悲劇を繰り返さないために",
+    "author": "ロバートマクナマラ",
     "genre": "ノンフィクション",
     "subgenre": "その他ノンフィクション",
     "series": null,
@@ -11629,8 +11629,8 @@
   },
   {
     "id": "4905821746",
-    "title": "完訳 エヴゲーニイ・オネーギン アレクサンドル・セルゲーヴィチ プーシキン",
-    "author": "",
+    "title": "完訳 エヴゲーニイ・オネーギン",
+    "author": "アレクサンドル・セルゲーヴィチ プーシキン",
     "genre": "未分類",
     "subgenre": null,
     "series": null,
@@ -13136,8 +13136,8 @@
   },
   {
     "id": "4006001770",
-    "title": "光と物質のふしぎな理論 R．P．ファインマン 著 釜江 常好 訳 大貫 昌子 訳",
-    "author": "",
+    "title": "光と物質のふしぎな理論 著 釜江 常好 訳 大貫 昌子 訳",
+    "author": "R．P．ファインマン",
     "genre": "ノンフィクション",
     "subgenre": "その他ノンフィクション",
     "series": null,
@@ -14210,8 +14210,8 @@
   },
   {
     "id": "4566023605",
-    "title": "指輪物語〈追補編〉 新板 J．R．R． トールキン",
-    "author": "",
+    "title": "指輪物語〈追補編〉 新板",
+    "author": "J．R．R． トールキン",
     "genre": "フィクション",
     "subgenre": "その他フィクション",
     "series": null,
@@ -14340,8 +14340,8 @@
   },
   {
     "id": "4101144281",
-    "title": "私の京都 小説の旅 瀬戸内 寂聴",
-    "author": "",
+    "title": "私の京都 小説の旅",
+    "author": "瀬戸内 寂聴",
     "genre": "エッセイ",
     "subgenre": null,
     "series": "新潮文庫／1",
@@ -14643,8 +14643,8 @@
   },
   {
     "id": "4003220633",
-    "title": "失楽園 下 ミルトン",
-    "author": "",
+    "title": "失楽園 下",
+    "author": "ミルトン",
     "genre": "フィクション",
     "subgenre": "その他フィクション",
     "series": "岩波文庫 赤 206-3／1",
@@ -14669,8 +14669,8 @@
   },
   {
     "id": "4003220625",
-    "title": "失楽園 上 ミルトン",
-    "author": "",
+    "title": "失楽園 上",
+    "author": "ミルトン",
     "genre": "フィクション",
     "subgenre": "その他フィクション",
     "series": "岩波文庫 赤 206-2／1",
@@ -15966,8 +15966,8 @@
   },
   {
     "id": "4544040442",
-    "title": "新ハイスピード・ドライビング ポール フレール",
-    "author": "",
+    "title": "新ハイスピード・ドライビング",
+    "author": "ポール フレール",
     "genre": "運転",
     "subgenre": null,
     "series": null,
@@ -16660,9 +16660,9 @@
     "source": "google_drive"
   },
   {
-    "id": "title_d7ffc9d1",
-    "title": "人工知能概論 舟本奨",
-    "author": "",
+    "id": "title_9327e2be",
+    "title": "人工知能概論",
+    "author": "舟本奨",
     "genre": "コンピュータ",
     "subgenre": null,
     "series": null,
@@ -17056,8 +17056,8 @@
   },
   {
     "id": "4061159119",
-    "title": "生命に刻まれし愛のかたみ 三浦綾子 p",
-    "author": "",
+    "title": "生命に刻まれし愛のかたみ",
+    "author": "三浦綾子",
     "genre": "フィクション（日本）",
     "subgenre": "その他フィクション",
     "series": null,
@@ -17786,8 +17786,8 @@
   },
   {
     "id": "4101001014",
-    "title": "雪国 川端 康成",
-    "author": "",
+    "title": "雪国",
+    "author": "川端 康成",
     "genre": "フィクション（日本）",
     "subgenre": "その他フィクション",
     "series": "新潮文庫 （か-1-1／1",
@@ -18875,8 +18875,8 @@
   },
   {
     "id": "4484031116",
-    "title": "鉄則！企画書は「1枚」にまとめよ パトリック・G． ライリー",
-    "author": "",
+    "title": "鉄則！企画書は「1枚」にまとめよ",
+    "author": "パトリック・G． ライリー",
     "genre": "実用",
     "subgenre": null,
     "series": null,
@@ -19969,8 +19969,8 @@
   },
   {
     "id": "4003363981",
-    "title": "反時代的考察 ニイチェ",
-    "author": "",
+    "title": "反時代的考察",
+    "author": "ニイチェ",
     "genre": "フィクション",
     "subgenre": "その他フィクション",
     "series": "下巻／岩波文庫／1",
@@ -19995,8 +19995,8 @@
   },
   {
     "id": "4003363973",
-    "title": "反時代的考察 ニイチェ",
-    "author": "",
+    "title": "反時代的考察",
+    "author": "ニイチェ",
     "genre": "フィクション",
     "subgenre": "その他フィクション",
     "series": "上巻／岩波文庫／1",
@@ -20776,9 +20776,9 @@
     "source": "paper"
   },
   {
-    "id": "title_367a8413",
-    "title": "聞かせてよ、ファインマンさん ファインマン 著 大貫 昌子 訳 江沢 洋 訳",
-    "author": "",
+    "id": "title_0c3da25e",
+    "title": "聞かせてよ、ファインマンさん 大貫 昌子 訳 江沢 洋 訳",
+    "author": "ファインマン",
     "genre": "エッセイ",
     "subgenre": null,
     "series": null,
@@ -21456,8 +21456,8 @@
   },
   {
     "id": "4150115303",
-    "title": "悠久の銀河帝国 アーサー・C・クラーク",
-    "author": "",
+    "title": "悠久の銀河帝国",
+    "author": "アーサー・C・クラーク",
     "genre": "SF",
     "subgenre": null,
     "series": null,
@@ -21646,8 +21646,8 @@
   },
   {
     "id": "4152091606",
-    "title": "量子の海、ディラックの深淵--天才物理学者の華々しき業績と寡黙なる生涯 グレアム・ファーメロ",
-    "author": "",
+    "title": "量子の海、ディラックの深淵--天才物理学者の華々しき業績と寡黙なる生涯",
+    "author": "グレアム・ファーメロ",
     "genre": "ノンフィクション",
     "subgenre": "科学・技術",
     "series": null,

@@ -2,23 +2,23 @@
   "corrections": [
     {
       "original_title": "GNU Emacs デブラ キャメロン",
-      "title": "GNU Emacs デブラ キャメロン",
-      "author": ""
+      "title": "GNU Emacs",
+      "author": "デブラ キャメロン"
     },
     {
       "original_title": "Graham - Knuth - Patashnik - Concrete Mathematics",
-      "title": "Graham - Knuth - Patashnik - Concrete Mathematics",
-      "author": ""
+      "title": "Concrete Mathematics",
+      "author": "Graham - Knuth - Patashnik"
     },
     {
       "original_title": "Joel on Software Joel Spolsky",
-      "title": "Joel on Software Joel Spolsky",
-      "author": ""
+      "title": "Joel on Software",
+      "author": "Joel Spolsky"
     },
     {
       "original_title": "Mazda Miata Mx5 Enthusiasts Shop Manual Rod Grainger",
-      "title": "Mazda Miata Mx5 Enthusiasts Shop Manual Rod Grainger",
-      "author": ""
+      "title": "Mazda Miata Mx5 Enthusiasts Shop Manual",
+      "author": "Rod Grainger"
     },
     {
       "original_title": "Rubyベストプラクティス",
@@ -32,38 +32,38 @@
     },
     {
       "original_title": "いかにして問題をとくか G． ポリア",
-      "title": "いかにして問題をとくか G． ポリア",
-      "author": ""
+      "title": "いかにして問題をとくか",
+      "author": "G． ポリア"
     },
     {
       "original_title": "インターネットのカタチ-もろさが織り成す粘り強い世界- あきみち",
-      "title": "インターネットのカタチ-もろさが織り成す粘り強い世界- あきみち",
-      "author": ""
+      "title": "インターネットのカタチ-もろさが織り成す粘り強い世界",
+      "author": "あきみち"
     },
     {
       "original_title": "ウルカヌスの群像-ブッシュ政権とイラク戦争 ジェームズ マン",
-      "title": "ウルカヌスの群像-ブッシュ政権とイラク戦争 ジェームズ マン",
-      "author": ""
+      "title": "ウルカヌスの群像-ブッシュ政権とイラク戦争",
+      "author": "ジェームズ マン"
     },
     {
       "original_title": "オブジェクト指向方法論OMT-モデル化と設計 ジェームズ ランボー",
-      "title": "オブジェクト指向方法論OMT-モデル化と設計 ジェームズ ランボー",
-      "author": ""
+      "title": "オブジェクト指向方法論OMT-モデル化と設計",
+      "author": "ジェームズ ランボー"
     },
     {
       "original_title": "スーパーエンジニアへの道-技術リーダーシップの人間学 G．M． ワインバーグ",
-      "title": "スーパーエンジニアへの道-技術リーダーシップの人間学 G．M． ワインバーグ",
-      "author": ""
+      "title": "スーパーエンジニアへの道-技術リーダーシップの人間学",
+      "author": "G．M． ワインバーグ"
     },
     {
       "original_title": "スティーブ・ジョブズ 驚異のプレゼン-人々を惹きつける18の法則 カーマイン・ガロ",
-      "title": "スティーブ・ジョブズ 驚異のプレゼン-人々を惹きつける18の法則 カーマイン・ガロ",
-      "author": ""
+      "title": "スティーブ・ジョブズ 驚異のプレゼン-人々を惹きつける18の法則",
+      "author": "カーマイン・ガロ"
     },
     {
       "original_title": "セブン・イヤーズ・イン・チベット-チベットの7年 ハインリヒ ハラー 474p_4042770010",
-      "title": "セブン・イヤーズ・イン・チベット-チベットの7年 ハインリヒ ハラー",
-      "author": "",
+      "title": "セブン・イヤーズ・イン・チベット-チベットの7年",
+      "author": "ハインリヒ ハラー",
       "pages": 474,
       "isbn": "4042770010"
     },
@@ -74,8 +74,8 @@
     },
     {
       "original_title": "ドライビングテクニック エリック カールソン",
-      "title": "ドライビングテクニック エリック カールソン",
-      "author": ""
+      "title": "ドライビングテクニック",
+      "author": "エリック カールソン"
     },
     {
       "original_title": "トリスタン・イズー物語",
@@ -89,13 +89,13 @@
     },
     {
       "original_title": "ビーイング・デジタル - ビットの時代 新装版 ニコラス・ネグロポンテ",
-      "title": "ビーイング・デジタル - ビットの時代 新装版 ニコラス・ネグロポンテ",
-      "author": ""
+      "title": "ビーイング・デジタル - ビットの時代 新装版",
+      "author": "ニコラス・ネグロポンテ"
     },
     {
       "original_title": "ファインマンの手紙 リチャード P ファインマン",
-      "title": "ファインマンの手紙 リチャード P ファインマン",
-      "author": ""
+      "title": "ファインマンの手紙",
+      "author": "リチャード P ファインマン"
     },
     {
       "original_title": "ブッダのことば-スッタニパータ",
@@ -104,18 +104,18 @@
     },
     {
       "original_title": "プログラミング言語C-ANSI規格準拠 B．W． カーニハン",
-      "title": "プログラミング言語C-ANSI規格準拠 B．W． カーニハン",
-      "author": ""
+      "title": "プログラミング言語C-ANSI規格準拠",
+      "author": "B．W． カーニハン"
     },
     {
       "original_title": "ヘッセからの手紙-混沌を生き抜くために ヘルマン ヘッセ",
-      "title": "ヘッセからの手紙-混沌を生き抜くために ヘルマン ヘッセ",
-      "author": ""
+      "title": "ヘッセからの手紙-混沌を生き抜くために",
+      "author": "ヘルマン ヘッセ"
     },
     {
       "original_title": "マクナマラ回顧録 ベトナムの悲劇と教訓 ロバート・マクナマラ",
-      "title": "マクナマラ回顧録 ベトナムの悲劇と教訓 ロバート・マクナマラ",
-      "author": ""
+      "title": "マクナマラ回顧録 ベトナムの悲劇と教訓",
+      "author": "ロバート・マクナマラ"
     },
     {
       "original_title": "ミニ・ミステリ100",
@@ -129,18 +129,18 @@
     },
     {
       "original_title": "ラウィーニア アーシュラ・K・ル=グウィン",
-      "title": "ラウィーニア アーシュラ・K・ル=グウィン",
-      "author": ""
+      "title": "ラウィーニア",
+      "author": "アーシュラ・K・ル=グウィン"
     },
     {
       "original_title": "わがままこそ最高の美徳 ヘルマン ヘッセ",
-      "title": "わがままこそ最高の美徳 ヘルマン ヘッセ",
-      "author": ""
+      "title": "わがままこそ最高の美徳",
+      "author": "ヘルマン ヘッセ"
     },
     {
       "original_title": "異星の客 創元SF文庫 RAハインライン",
-      "title": "異星の客 創元SF文庫 RAハインライン",
-      "author": ""
+      "title": "異星の客 創元SF文庫",
+      "author": "RAハインライン"
     },
     {
       "original_title": "遺伝的アルゴリズム",
@@ -149,18 +149,18 @@
     },
     {
       "original_title": "科学は不確かだ！ R．P．ファインマン 著 大貫 昌子 訳",
-      "title": "科学は不確かだ！ R．P．ファインマン 著 大貫 昌子 訳",
-      "author": ""
+      "title": "科学は不確かだ！ 大貫 昌子 訳",
+      "author": "R．P．ファインマン"
     },
     {
       "original_title": "果てしなき論争 ベトナム戦争の悲劇を繰り返さないために ロバートマクナマラ",
-      "title": "果てしなき論争 ベトナム戦争の悲劇を繰り返さないために ロバートマクナマラ",
-      "author": ""
+      "title": "果てしなき論争 ベトナム戦争の悲劇を繰り返さないために",
+      "author": "ロバートマクナマラ"
     },
     {
       "original_title": "完訳 エヴゲーニイ・オネーギン アレクサンドル・セルゲーヴィチ プーシキン",
-      "title": "完訳 エヴゲーニイ・オネーギン アレクサンドル・セルゲーヴィチ プーシキン",
-      "author": ""
+      "title": "完訳 エヴゲーニイ・オネーギン",
+      "author": "アレクサンドル・セルゲーヴィチ プーシキン"
     },
     {
       "original_title": "岐阜県謎解き散歩",
@@ -179,8 +179,8 @@
     },
     {
       "original_title": "光と物質のふしぎな理論 R．P．ファインマン 著 釜江 常好 訳 大貫 昌子 訳",
-      "title": "光と物質のふしぎな理論 R．P．ファインマン 著 釜江 常好 訳 大貫 昌子 訳",
-      "author": ""
+      "title": "光と物質のふしぎな理論 著 釜江 常好 訳 大貫 昌子 訳",
+      "author": "R．P．ファインマン"
     },
     {
       "original_title": "最高齢プロフェッショナルの教え 徳間書店取材班",
@@ -189,27 +189,27 @@
     },
     {
       "original_title": "指輪物語〈追補編〉 新板 J．R．R． トールキン",
-      "title": "指輪物語〈追補編〉 新板 J．R．R． トールキン",
-      "author": ""
+      "title": "指輪物語〈追補編〉 新板",
+      "author": "J．R．R． トールキン"
     },
     {
       "original_title": "私の京都 小説の旅 瀬戸内 寂聴 243p_4101144281",
-      "title": "私の京都 小説の旅 瀬戸内 寂聴",
-      "author": "",
+      "title": "私の京都 小説の旅",
+      "author": "瀬戸内 寂聴",
       "pages": 243,
       "isbn": "4101144281"
     },
     {
       "original_title": "失楽園 下 ミルトン 431p_4003220633",
-      "title": "失楽園 下 ミルトン",
-      "author": "",
+      "title": "失楽園 下",
+      "author": "ミルトン",
       "pages": 431,
       "isbn": "4003220633"
     },
     {
       "original_title": "失楽園 上 ミルトン 443p_4003220625",
-      "title": "失楽園 上 ミルトン",
-      "author": "",
+      "title": "失楽園 上",
+      "author": "ミルトン",
       "pages": 443,
       "isbn": "4003220625"
     },
@@ -220,8 +220,8 @@
     },
     {
       "original_title": "新ハイスピード・ドライビング ポール フレール",
-      "title": "新ハイスピード・ドライビング ポール フレール",
-      "author": ""
+      "title": "新ハイスピード・ドライビング",
+      "author": "ポール フレール"
     },
     {
       "original_title": "辛ミシュラン-東京うまい店・からい店 辛ミシュラン編集委員会",
@@ -230,8 +230,8 @@
     },
     {
       "original_title": "人工知能概論 舟本奨",
-      "title": "人工知能概論 舟本奨",
-      "author": ""
+      "title": "人工知能概論",
+      "author": "舟本奨"
     },
     {
       "original_title": "生と死の様式-脳死時代を迎える日本人の死生観",
@@ -240,32 +240,32 @@
     },
     {
       "original_title": "生命に刻まれし愛のかたみ 三浦綾子 p",
-      "title": "生命に刻まれし愛のかたみ 三浦綾子 p",
-      "author": ""
+      "title": "生命に刻まれし愛のかたみ",
+      "author": "三浦綾子"
     },
     {
       "original_title": "雪国 川端 康成 208p_4101001014",
-      "title": "雪国 川端 康成",
-      "author": "",
+      "title": "雪国",
+      "author": "川端 康成",
       "pages": 208,
       "isbn": "4101001014"
     },
     {
       "original_title": "鉄則！企画書は「1枚」にまとめよ パトリック・G． ライリー",
-      "title": "鉄則！企画書は「1枚」にまとめよ パトリック・G． ライリー",
-      "author": ""
+      "title": "鉄則！企画書は「1枚」にまとめよ",
+      "author": "パトリック・G． ライリー"
     },
     {
       "original_title": "反時代的考察 ニイチェ 221p_4003363981",
-      "title": "反時代的考察 ニイチェ",
-      "author": "",
+      "title": "反時代的考察",
+      "author": "ニイチェ",
       "pages": 221,
       "isbn": "4003363981"
     },
     {
       "original_title": "反時代的考察 ニイチェ 233p_4003363973",
-      "title": "反時代的考察 ニイチェ",
-      "author": "",
+      "title": "反時代的考察",
+      "author": "ニイチェ",
       "pages": 233,
       "isbn": "4003363973"
     },
@@ -276,20 +276,20 @@
     },
     {
       "original_title": "聞かせてよ、ファインマンさん ファインマン 著 大貫 昌子 訳 江沢 洋 訳 320p_",
-      "title": "聞かせてよ、ファインマンさん ファインマン 著 大貫 昌子 訳 江沢 洋 訳",
-      "author": "",
+      "title": "聞かせてよ、ファインマンさん 大貫 昌子 訳 江沢 洋 訳",
+      "author": "ファインマン",
       "pages": 320,
       "isbn": null
     },
     {
       "original_title": "悠久の銀河帝国 アーサー・C・クラーク",
-      "title": "悠久の銀河帝国 アーサー・C・クラーク",
-      "author": ""
+      "title": "悠久の銀河帝国",
+      "author": "アーサー・C・クラーク"
     },
     {
       "original_title": "量子の海、ディラックの深淵--天才物理学者の華々しき業績と寡黙なる生涯 グレアム・ファーメロ",
-      "title": "量子の海、ディラックの深淵--天才物理学者の華々しき業績と寡黙なる生涯 グレアム・ファーメロ",
-      "author": ""
+      "title": "量子の海、ディラックの深淵--天才物理学者の華々しき業績と寡黙なる生涯",
+      "author": "グレアム・ファーメロ"
     },
     {
       "original_title": "魯迅評論集",
