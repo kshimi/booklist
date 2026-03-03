@@ -3,7 +3,7 @@ import BookBasicInfo from '../components/BookBasicInfo';
 import BookVersionLinks from '../components/BookVersionLinks';
 import BookExternalInfo from '../components/BookExternalInfo';
 
-export default function BookDetailPage({ book, onClose, onSelectAuthor }) {
+export default function BookDetailPage({ book, bookMetadata, onClose, onSelectAuthor }) {
   // Close on Escape key
   useEffect(() => {
     function handleKeyDown(e) {
@@ -17,6 +17,8 @@ export default function BookDetailPage({ book, onClose, onSelectAuthor }) {
     onSelectAuthor(author);
     onClose();
   }
+
+  const preloaded = book.isbn ? bookMetadata?.[book.isbn] : undefined;
 
   return (
     <div
@@ -48,7 +50,7 @@ export default function BookDetailPage({ book, onClose, onSelectAuthor }) {
           <BookVersionLinks versions={book.versions} versionFiles={book.version_files} />
 
           {/* F-11: External book data */}
-          <BookExternalInfo isbn={book.isbn} />
+          <BookExternalInfo isbn={book.isbn} preloaded={preloaded} />
         </div>
       </div>
     </div>

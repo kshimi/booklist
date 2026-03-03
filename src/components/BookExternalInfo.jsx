@@ -2,8 +2,8 @@ import { useExternalBookData } from '../hooks/useExternalBookData';
 import LoadingSpinner from './LoadingSpinner';
 import ExternalBookDetails from './ExternalBookDetails';
 
-export default function BookExternalInfo({ isbn }) {
-  const { data, status } = useExternalBookData(isbn || null);
+export default function BookExternalInfo({ isbn, preloaded }) {
+  const { data, status } = useExternalBookData(isbn || null, preloaded);
 
   if (status === 'idle') return null;
 

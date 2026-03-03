@@ -179,6 +179,29 @@ Steps:
 When Claude Code is asked to assist with this task, follow the steps above
 rather than the full design-doc → spec → implement workflow.
 
+### Book Metadata Enrichment Workflow
+
+`scripts/enrich.js` pre-fetches bibliographic data (cover image, publisher, publication year,
+synopsis) from external APIs and saves it to `data/book-metadata.json`.
+Run this manually after `process.js` when new books are added, or to fill gaps from prior runs.
+
+Steps:
+
+1. Run the enrichment script (incremental — skips already-fetched ISBNs):
+   ```bash
+   node scripts/enrich.js
+   ```
+2. Review the completion summary printed to stdout (hit count per API, total unfetched).
+3. `data/book-metadata.json` is **not committed to Git** — it is generated locally in each
+   environment and excluded via `.gitignore`.
+
+Options:
+- `--force` — re-fetch all ISBNs regardless of existing data
+- `--skip-google` — skip Google Books API calls (conserves the daily quota)
+
+When Claude Code is asked to assist with this task, run the script and report the summary.
+Do not commit `data/book-metadata.json`.
+
 ## UI Component Reference
 
 ### Component Structure

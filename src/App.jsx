@@ -6,7 +6,7 @@ import BookDetailPage from './pages/BookDetailPage';
 import StatsDashboardPage from './pages/StatsDashboardPage';
 
 export default function App() {
-  const { books, loading, error } = useBooks();
+  const { books, bookMetadata, loading, error } = useBooks();
   const [activePage, setActivePage] = useState('list');
   const [selectedBook, setSelectedBook] = useState(null);
 
@@ -69,6 +69,7 @@ export default function App() {
       {selectedBook && (
         <BookDetailPage
           book={selectedBook}
+          bookMetadata={bookMetadata}
           onClose={() => setSelectedBook(null)}
           onSelectAuthor={author => {
             setFilterOverride({ author });
