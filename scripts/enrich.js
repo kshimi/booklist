@@ -107,11 +107,17 @@ async function fetchNDL(isbn13) {
   if (!records) return null;
 
   const recordData = Array.isArray(records) ? records[0] : records;
-  const dc = recordData?.['srw:recordData']?.['rdf:RDF']?.['dcndl:BibAdminResource']
-    ?? recordData?.['srw:recordData']?.['rdf:RDF']?.['dcndl:BibResource']
-    ?? null;
+  const rdf = recordData?.['srw:recordData']?.['rdf:RDF'];
+  if (!rdf) {
+    console.warn(`[NDL] unexpected record structure for ISBN ${isbn13}`);
+    return null;
+  }
 
-  if (!dc) return null;
+  const dc = rdf['dcndl:BibAdminResource'] ?? rdf['dcndl:BibResource'] ?? null;
+  if (!dc) {
+    console.warn(`[NDL] no BibResource found for ISBN ${isbn13}`);
+    return null;
+  }
 
   const publisher = dc['dcterms:publisher']?.['foaf:Agent']?.['foaf:name']
     ?? dc['dc:publisher']
@@ -207,6 +213,7 @@ async function main() {
 
   const isbn13List = Object.values(isbn10to13Map);
   const results = {}; // isbn10 → metadata entry
+  const failedISBNs = { ndl: [], google: [] };
 
   // --- Step 1: openBD (bulk, 100 at a time) ---
   let openBDHits = 0;
@@ -246,7 +253,7 @@ async function main() {
         ndlHits++;
       }
     } catch (err) {
-      // NDL failure is non-fatal
+      failedISBNs.ndl.push(b.isbn);
     }
     await wait(300);
   }
@@ -271,7 +278,7 @@ async function main() {
           gbHits++;
         }
       } catch (err) {
-        // Google Books failure is non-fatal
+        failedISBNs.google.push(b.isbn);
       }
       await wait(500);
     }
@@ -297,6 +304,12 @@ async function main() {
   const totalMiss = Object.values(metadata).filter(e => e.sources.length === 0).length;
   console.log(`\nDone. Saved to ${METADATA_PATH}`);
   console.log(`Total records: ${Object.keys(metadata).length} (${totalHits} with data, ${totalMiss} no data)`);
+  if (failedISBNs.ndl.length > 0) {
+    console.warn(`[NDL] ${failedISBNs.ndl.length} failed: ${failedISBNs.ndl.join(', ')}`);
+  }
+  if (failedISBNs.google.length > 0) {
+    console.warn(`[Google Books] ${failedISBNs.google.length} failed: ${failedISBNs.google.join(', ')}`);
+  }
 }
 
 main().catch(err => {

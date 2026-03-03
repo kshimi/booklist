@@ -21,7 +21,12 @@ export function useBooks() {
         if (!res.ok) return {};
         return res.json();
       })
-      .catch(() => ({}));
+      .catch(err => {
+        if (err.name !== 'AbortError') {
+          console.warn('[useBooks] book-metadata.json fetch failed:', err.message);
+        }
+        return {};
+      });
 
     Promise.all([fetchBooks, fetchMetadata])
       .then(([booksData, metadataData]) => {
