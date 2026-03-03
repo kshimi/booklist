@@ -149,6 +149,36 @@ If the developer requests changes after review:
 - System specifications → `docs/app/spec/system/`
 - Specifications should reflect system-wide design decisions, not issue-specific details
 
+## Data Maintenance
+
+Some recurring tasks fall outside the standard Issue → Design → Implement workflow.
+These are data curation tasks performed directly by the developer (or on their behalf).
+
+### Author Correction Workflow
+
+When books have empty author fields that heuristic patterns could not resolve,
+the developer manually populates `data/book-corrections.json`.
+
+Steps:
+
+1. List unregistered books with missing authors:
+   ```bash
+   node scripts/list-missing-authors.js
+   ```
+2. Edit `data/book-corrections.json` — fill in `title` and `author` fields for each entry.
+3. Regenerate `data/books.json`:
+   ```bash
+   node scripts/process.js
+   ```
+4. Commit both changed files:
+   ```bash
+   git add data/book-corrections.json data/books.json
+   git commit -m "chore: add author corrections (#<issue-number if applicable>)"
+   ```
+
+When Claude Code is asked to assist with this task, follow the steps above
+rather than the full design-doc → spec → implement workflow.
+
 ## UI Component Reference
 
 ### Component Structure
