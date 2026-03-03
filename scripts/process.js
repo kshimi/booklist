@@ -6,6 +6,7 @@ const path = require('path');
 const EXCLUDED_NAMES = ['self_check', '20120330_1246_33_0706', 'to_1733_912_003_5_at'];
 
 const AUTHOR_ALIASES_PATH = path.join(__dirname, '..', 'data', 'author-aliases.json');
+const BOOK_CORRECTIONS_PATH = path.join(__dirname, '..', 'data', 'book-corrections.json');
 
 const GENRE_RULES = [
   { test: (p) => p.includes('エッセイ'), genre: 'エッセイ' },
@@ -242,7 +243,70 @@ function parseFilename(filename) {
     .replace(/\s+/g, ' ')
     .trim();
 
+  // Auto-detection: if no brackets found and author is still empty,
+  // attempt to extract author name from the title using pattern matching.
+  if (author === '' && lastClose < 0) {
+    const extracted = extractAuthorFromTitle(title);
+    if (extracted) {
+      return { title: extracted.title, author: extracted.author, isbn, pages, series, version };
+    }
+  }
+
   return { title, author, isbn, pages, series, version };
+}
+
+/**
+ * Attempt to extract an author name from a title string using heuristic patterns.
+ * Only called when bracket-based extraction yielded no author.
+ *
+ * P-A: Western Title Case name(s) at the end of a title containing Japanese characters.
+ * P-B: Kanji name (family 1-3 chars + space + given 1-2 chars) at the end of the title.
+ *      Non-name kanji suffixes (訳, 著, 編, etc.) disqualify the match.
+ *
+ * Returns { title, author } on match, or null if no pattern matches.
+ */
+function extractAuthorFromTitle(title) {
+  // P-A: Japanese title ending with Western Title Case word(s).
+  // Non-greedy .*? finds the leftmost split where the remaining suffix consists
+  // entirely of Title Case Latin words through to end-of-string.
+  const hasJapanese = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/.test(title);
+  if (hasJapanese) {
+    const match = title.match(/^(.*?)\s+([A-Z][a-zA-Z]+(?: [A-Z][a-zA-Z]+)*)$/);
+    if (match && match[1].trim()) {
+      return { title: match[1].trim(), author: match[2] };
+    }
+  }
+
+  // P-B: Kanji family name (1-3 chars) + space + kanji given name (1-2 chars)
+  const NON_NAME_KANJI = /[訳著編注校監]$/;
+  const kanjiMatch = title.match(/^(.*\S)\s+([\u4E00-\u9FFF]{1,3} [\u4E00-\u9FFF]{1,2})$/);
+  if (kanjiMatch && !NON_NAME_KANJI.test(kanjiMatch[2])) {
+    return { title: kanjiMatch[1], author: kanjiMatch[2] };
+  }
+
+  return null;
+}
+
+/**
+ * Apply manual corrections from book-corrections.json.
+ * Looks up the parsed title in the corrections list and returns overridden values
+ * for title, author, pages, and isbn when present; otherwise returns the originals.
+ *
+ * pages and isbn fields in a correction entry are optional:
+ *   - If present (including null), the value overrides the parsed result.
+ *   - If absent (key not in the entry object), the parsed result is kept.
+ */
+function applyBookCorrections(title, author, pages, isbn, corrections) {
+  const entry = corrections.find(c => c.original_title === title);
+  if (entry) {
+    return {
+      title: entry.title,
+      author: entry.author,
+      pages: 'pages' in entry ? entry.pages : pages,
+      isbn: 'isbn' in entry ? entry.isbn : isbn,
+    };
+  }
+  return { title, author, pages, isbn };
 }
 
 /**
@@ -374,6 +438,10 @@ function main() {
     ? JSON.parse(fs.readFileSync(AUTHOR_ALIASES_PATH, 'utf-8'))
     : {};
 
+  const bookCorrections = fs.existsSync(BOOK_CORRECTIONS_PATH)
+    ? JSON.parse(fs.readFileSync(BOOK_CORRECTIONS_PATH, 'utf-8')).corrections || []
+    : [];
+
   const csvText = fs.readFileSync(csvPath, 'utf-8');
   const rows = parseCSV(csvText);
 
@@ -383,11 +451,15 @@ function main() {
 
   const files = filtered.map(row => {
     const parsed = parseFilename(row['ファイル名'] || '');
-    const author = resolveAuthorAlias(normalizeAuthor(parsed.author), authorAliases);
-    const genre = estimateGenre(row['フォルダパス'] || '', parsed.title, author, parsed.series);
+    const normalizedAuthor = resolveAuthorAlias(normalizeAuthor(parsed.author), authorAliases);
+    const corrected = applyBookCorrections(parsed.title, normalizedAuthor, parsed.pages, parsed.isbn, bookCorrections);
+    const genre = estimateGenre(row['フォルダパス'] || '', corrected.title, corrected.author, parsed.series);
     return {
       ...parsed,
-      author,
+      title: corrected.title,
+      author: corrected.author,
+      pages: corrected.pages,
+      isbn: corrected.isbn,
       genre,
       folder_path: row['フォルダパス'] || '',
       file_url: row['ファイルURL'] || '',
@@ -424,7 +496,7 @@ function main() {
   console.log(`  出力ファイル: data/books.json`);
 }
 
-module.exports = { parseCSV, filterRecords, parseFilename, normalizeAuthor, resolveAuthorAlias, estimateGenre, estimateSubgenre, deduplicateBooks, generateId };
+module.exports = { parseCSV, filterRecords, parseFilename, extractAuthorFromTitle, applyBookCorrections, normalizeAuthor, resolveAuthorAlias, estimateGenre, estimateSubgenre, deduplicateBooks, generateId };
 
 if (require.main === module) {
   main();

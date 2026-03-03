@@ -198,6 +198,57 @@ npm run dev
 
 ---
 
+## データメンテナンス
+
+### 著者名補正のメンテナンス
+
+`data/book-corrections.json` に著者名を手動で追記することで、自動パターンでは分離できなかった書籍の著者名を補完できます。
+
+#### 手順
+
+**1. 未登録書籍を確認する**
+
+```bash
+node scripts/list-missing-authors.js
+```
+
+著者名が空で、かつ `book-corrections.json` に未登録の書籍一覧が表示されます。
+
+**2. `data/book-corrections.json` に著者名を記入する**
+
+該当エントリの `author` フィールドに正しい著者名を記入します。
+タイトルに著者名が混入している場合は `title` フィールドも修正してください。
+
+```json
+{
+  "original_title": "GNU Emacs デブラ キャメロン",
+  "title": "GNU Emacs",
+  "author": "デブラ・キャメロン"
+}
+```
+
+**3. `books.json` を再生成する**
+
+```bash
+node scripts/process.js
+```
+
+**4. 変更を確認してコミットする**
+
+```bash
+git diff data/books.json
+git add data/book-corrections.json data/books.json
+git commit -m "chore: add author corrections for <書籍名など>"
+```
+
+#### 注意事項
+
+- `book-corrections.json` の変更は `books.json` の再生成まで反映されない
+- 著者名の表記は `data/author-aliases.json` のエイリアス照合後に上書きされるため、エイリアス登録済みの表記とは独立して機能する
+- 著者名が本当に不明な書籍は `author: ""` のまま残してかまわない
+
+---
+
 ## ヒント
 
 ### Claude Code への効果的な指示の出し方

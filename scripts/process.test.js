@@ -9,6 +9,8 @@ const {
   parseCSV,
   filterRecords,
   parseFilename,
+  extractAuthorFromTitle,
+  applyBookCorrections,
   normalizeAuthor,
   resolveAuthorAlias,
   estimateGenre,
@@ -78,6 +80,134 @@ describe('parseFilename', () => {
     assert.equal(r.author, '著者名');
     assert.equal(r.series, '新潮文庫');
     assert.equal(r.title, 'タイトル');
+  });
+
+  test('P-A: extracts Western name at end of Japanese title (no brackets)', () => {
+    const r = parseFilename('SQLアンチパターン Bill Karwin.pdf');
+    assert.equal(r.title, 'SQLアンチパターン');
+    assert.equal(r.author, 'Bill Karwin');
+  });
+
+  test('P-A: extracts multi-word Western name after Japanese title', () => {
+    const r = parseFilename('UNIXシェルプログラミング Lowell Jay Arthur.pdf');
+    assert.equal(r.title, 'UNIXシェルプログラミング');
+    assert.equal(r.author, 'Lowell Jay Arthur');
+  });
+
+  test('P-B: extracts kanji name at end of title (no brackets)', () => {
+    const r = parseFilename('Schemeによる記号処理入門 猪股 俊光.pdf');
+    assert.equal(r.title, 'Schemeによる記号処理入門');
+    assert.equal(r.author, '猪股 俊光');
+  });
+
+  test('P-B: extracts kanji name after katakana/mixed title', () => {
+    const r = parseFilename('iPhoneiPadiPod touchプログラミングバイブル-iOS 5Xcode 4対応 smart phone programming bible 布留川 英一.pdf');
+    assert.equal(r.author, '布留川 英一');
+  });
+
+  test('no auto-extraction for all-English title without Japanese chars', () => {
+    const r = parseFilename('Joel on Software Joel Spolsky.pdf');
+    assert.equal(r.title, 'Joel on Software Joel Spolsky');
+    assert.equal(r.author, '');
+  });
+
+  test('no auto-extraction for katakana-only author at end (P2 not supported)', () => {
+    const r = parseFilename('GNU Emacs デブラ キャメロン.pdf');
+    assert.equal(r.title, 'GNU Emacs デブラ キャメロン');
+    assert.equal(r.author, '');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// extractAuthorFromTitle
+// ---------------------------------------------------------------------------
+
+describe('extractAuthorFromTitle', () => {
+  test('P-A: returns title and Western author for Japanese+Latin title', () => {
+    const result = extractAuthorFromTitle('SQLアンチパターン Bill Karwin');
+    assert.deepEqual(result, { title: 'SQLアンチパターン', author: 'Bill Karwin' });
+  });
+
+  test('P-A: returns null for all-English title (no Japanese chars)', () => {
+    assert.equal(extractAuthorFromTitle('Joel on Software Joel Spolsky'), null);
+  });
+
+  test('P-A: returns null for Japanese title ending in katakana (not Title Case Latin)', () => {
+    assert.equal(extractAuthorFromTitle('GNU Emacs デブラ キャメロン'), null);
+  });
+
+  test('P-B: returns title and kanji author for mixed title with kanji name', () => {
+    const result = extractAuthorFromTitle('Schemeによる記号処理入門 猪股 俊光');
+    assert.deepEqual(result, { title: 'Schemeによる記号処理入門', author: '猪股 俊光' });
+  });
+
+  test('P-B: rejects match ending with 訳 (non-name suffix)', () => {
+    assert.equal(extractAuthorFromTitle('科学は不確かだ！ R．P．ファインマン 著 大貫 昌子 訳'), null);
+  });
+
+  test('P-B: rejects match ending with 著 (non-name suffix)', () => {
+    assert.equal(extractAuthorFromTitle('タイトル 著者 著'), null);
+  });
+
+  test('P-B: returns null when given name exceeds 2 kanji', () => {
+    // 出版社名 3 kanji given → should not match
+    assert.equal(extractAuthorFromTitle('モンゴル 遊牧の四季 三秋尚 鉱脈社'), null);
+  });
+
+  test('returns null for title with no extractable author pattern', () => {
+    assert.equal(extractAuthorFromTitle('Rubyベストプラクティス'), null);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// applyBookCorrections
+// ---------------------------------------------------------------------------
+
+describe('applyBookCorrections', () => {
+  const corrections = [
+    { original_title: 'GNU Emacs デブラ キャメロン', title: 'GNU Emacs', author: 'デブラ・キャメロン' },
+    { original_title: 'Rubyベストプラクティス', title: 'Rubyベストプラクティス', author: 'Jeremy McAnally' },
+  ];
+
+  test('returns corrected title and author when original_title matches', () => {
+    const result = applyBookCorrections('GNU Emacs デブラ キャメロン', '', null, null, corrections);
+    assert.deepEqual(result, { title: 'GNU Emacs', author: 'デブラ・キャメロン', pages: null, isbn: null });
+  });
+
+  test('returns unchanged title and author when no match found', () => {
+    const result = applyBookCorrections('存在しないタイトル', '著者名', null, null, corrections);
+    assert.deepEqual(result, { title: '存在しないタイトル', author: '著者名', pages: null, isbn: null });
+  });
+
+  test('returns unchanged when corrections array is empty', () => {
+    const result = applyBookCorrections('GNU Emacs デブラ キャメロン', '', null, null, []);
+    assert.deepEqual(result, { title: 'GNU Emacs デブラ キャメロン', author: '', pages: null, isbn: null });
+  });
+
+  test('correction with empty author field keeps author empty', () => {
+    const result = applyBookCorrections('Rubyベストプラクティス', '', null, null, [
+      { original_title: 'Rubyベストプラクティス', title: 'Rubyベストプラクティス', author: '' },
+    ]);
+    assert.deepEqual(result, { title: 'Rubyベストプラクティス', author: '', pages: null, isbn: null });
+  });
+
+  test('correction with pages and isbn overrides parsed null values', () => {
+    const result = applyBookCorrections('雪国 川端 康成 208p_4101001014', '', null, null, [
+      { original_title: '雪国 川端 康成 208p_4101001014', title: '雪国', author: '川端康成', pages: 208, isbn: '4101001014' },
+    ]);
+    assert.deepEqual(result, { title: '雪国', author: '川端康成', pages: 208, isbn: '4101001014' });
+  });
+
+  test('correction without pages/isbn keys keeps parsed values', () => {
+    const result = applyBookCorrections('GNU Emacs デブラ キャメロン', '', 300, '1234567890', corrections);
+    assert.deepEqual(result, { title: 'GNU Emacs', author: 'デブラ・キャメロン', pages: 300, isbn: '1234567890' });
+  });
+
+  test('correction with explicit null pages/isbn overrides non-null parsed values', () => {
+    const result = applyBookCorrections('タイトル', '著者', 300, '1234567890', [
+      { original_title: 'タイトル', title: 'タイトル', author: '著者', pages: null, isbn: null },
+    ]);
+    assert.deepEqual(result, { title: 'タイトル', author: '著者', pages: null, isbn: null });
   });
 });
 
