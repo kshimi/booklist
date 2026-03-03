@@ -66,7 +66,7 @@ function listMissing() {
  * Returns { cleanedTitle, pages, isbn } on match, or null if not found.
  */
 function extractPagesIsbnFromTitle(title) {
-  const match = title.match(/\s(\d+)p_([A-Za-z0-9]{10,13})?$/);
+  const match = title.match(/\s(\d+)p_([A-Za-z0-9]{13}|[A-Za-z0-9]{10})?$/);
   if (!match) return null;
   return {
     cleanedTitle: title.slice(0, match.index).trim(),
