@@ -284,8 +284,10 @@ async function main() {
   if (!SKIP_GOOGLE) {
     const gbTargets = targets.filter(b => !results[b.isbn]?.description);
     let gbHits = 0;
+    let googleQuotaExceeded = false;
     console.log(`[Google Books] ${gbTargets.length} ISBNs to try`);
     for (const b of gbTargets) {
+      if (googleQuotaExceeded) break;
       const isbn13 = isbn10to13Map[b.isbn];
       if (!isbn13) continue;
       try {
@@ -299,7 +301,12 @@ async function main() {
           gbHits++;
         }
       } catch (err) {
-        failedISBNs.google.push(b.isbn);
+        if (/HTTP 429/.test(err.message)) {
+          googleQuotaExceeded = true;
+          console.warn('[Google Books] Quota exceeded. Skipping remaining requests.');
+        } else {
+          failedISBNs.google.push(b.isbn);
+        }
       }
       await wait(500);
     }
