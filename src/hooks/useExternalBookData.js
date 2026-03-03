@@ -62,7 +62,7 @@ async function fetchGoogleBooks(isbn) {
   return normalizeGoogleBooks(response);
 }
 
-export function useExternalBookData(isbn) {
+export function useExternalBookData(isbn, preloaded) {
   const [data, setData] = useState(null);
   const [status, setStatus] = useState('idle'); // idle | loading | loaded | not_found | error
 
@@ -70,6 +70,20 @@ export function useExternalBookData(isbn) {
     if (!isbn) {
       setStatus('idle');
       setData(null);
+      return;
+    }
+
+    // Use preloaded data from book-metadata.json if available
+    if (preloaded !== undefined && preloaded !== null) {
+      const hasData = preloaded.coverUrl || preloaded.publisher ||
+                      preloaded.publishedYear || preloaded.description;
+      if (hasData) {
+        setData({ ...preloaded, source: 'preloaded' });
+        setStatus('loaded');
+      } else {
+        setStatus('not_found');
+        setData(null);
+      }
       return;
     }
 
@@ -118,7 +132,7 @@ export function useExternalBookData(isbn) {
     })();
 
     return () => { cancelled = true; };
-  }, [isbn]);
+  }, [isbn, preloaded]);
 
   return { data, status };
 }
