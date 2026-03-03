@@ -2,7 +2,7 @@
 
 **Issue:** #24 書誌情報取得でQuotaに達してもリクエストを繰り返してしまう
 **作成日:** 2026-03-03
-**ステータス:** ドラフト
+**ステータス:** 実装済み
 
 ---
 
@@ -83,19 +83,19 @@ if (!SKIP_GOOGLE) {
 
 #### 変更後
 
+ループ本体を `runGoogleBooksStep()` として分離し、`main()` から呼び出す形に変更した。
+
 ```javascript
-// --- Step 3: Google Books (sequential, for description gaps) ---
-if (!SKIP_GOOGLE) {
-  const gbTargets = targets.filter(b => !results[b.isbn]?.description);
+// ループ本体（テスタビリティのために分離）
+async function runGoogleBooksStep(targets, results, isbn10to13Map, failedISBNs, fetchFn, delayMs) {
   let gbHits = 0;
   let googleQuotaExceeded = false;
-  console.log(`[Google Books] ${gbTargets.length} ISBNs to try`);
-  for (const b of gbTargets) {
+  for (const b of targets) {
     if (googleQuotaExceeded) break;
     const isbn13 = isbn10to13Map[b.isbn];
     if (!isbn13) continue;
     try {
-      const entry = await fetchGoogleBooks(isbn13);
+      const entry = await fetchFn(isbn13);
       if (entry) {
         if (results[b.isbn]) {
           results[b.isbn] = mergeInto(results[b.isbn], entry);
@@ -112,8 +112,16 @@ if (!SKIP_GOOGLE) {
         failedISBNs.google.push(b.isbn);
       }
     }
-    await wait(500);
+    if (!googleQuotaExceeded) await wait(delayMs);
   }
+  return gbHits;
+}
+
+// --- Step 3: Google Books (sequential, for description gaps) ---
+if (!SKIP_GOOGLE) {
+  const gbTargets = targets.filter(b => !results[b.isbn]?.description);
+  console.log(`[Google Books] ${gbTargets.length} ISBNs to try`);
+  const gbHits = await runGoogleBooksStep(gbTargets, results, isbn10to13Map, failedISBNs, fetchGoogleBooks, 500);
   console.log(`[Google Books] ${gbHits} hits`);
 }
 ```
@@ -125,6 +133,8 @@ if (!SKIP_GOOGLE) {
 | `googleQuotaExceeded` フラグの追加 | クォータ超過検出用のブール変数 |
 | ループ先頭での早期 `break` | フラグが立っていれば即座にループ終了 |
 | catch ブロックのエラー分岐 | HTTP 429 → フラグをセット + 警告ログ、その他 → 従来通り `failedISBNs.google` に追加 |
+| クォータ超過後の wait をスキップ | `if (!googleQuotaExceeded) await wait(delayMs)` — 429 検出時に不要な待機を排除 |
+| ループ本体を `runGoogleBooksStep()` に分離 | `fetchFn` と `delayMs` を注入可能にしてユニットテストを可能にする |
 
 ### `withRetry` の扱いについて
 
