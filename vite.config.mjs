@@ -35,6 +35,7 @@ function serveDataPlugin() {
       const destDir = resolve('dist/data');
       mkdirSync(destDir, { recursive: true });
       copyFileSync(resolve('data/books.json'), resolve(destDir, 'books.json'));
+      copyFileSync(resolve('data/book-metadata.json'), resolve(destDir, 'book-metadata.json'));
     },
   };
 }
