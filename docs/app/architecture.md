@@ -36,11 +36,22 @@ data/books.json
         ▼
 data/book-metadata.json              ← Git管理対象
 
+data/books.json
+data/book-metadata.json
+  └─ node scripts/generate-ai-comments.js  ← 手動実行（GEMINI_API_KEY 必要）
+        │  ・Gemini APIでおすすめコメントを生成
+        │  ・差分生成（未生成IDのみ対象、--days N / --all オプションあり）
+        │  ・無料枠リミット到達時は中断・途中保存
+        ▼
+data/book-ai-comments.json           ← Git管理対象
+
 【実行時（ブラウザ）】
 PC または iPad のブラウザ
   └─ SPA 起動
-        │  books.json と book-metadata.json を並行 fetch
+        │  books.json / book-metadata.json / book-ai-comments.json を並行 fetch
         │
+        ├─ 日替わりサジェスチョン（ヘッダー直下・常時表示）
+        │    └─ 日付ベースの決定論的選出 + Gemini 生成コメント表示
         ├─ 書籍一覧（検索・フィルタ・ソート）
         │    └─ 書籍カードに source バッジ（PDF / 紙）を表示
         ├─ 書籍詳細
@@ -76,11 +87,13 @@ booklist/
 │   ├── offline_bibliography_list.csv  # 紙書籍リスト（手動作成・入力データ）
 │   ├── books.json                # process.js 生成の蔵書カタログ
 │   ├── book-metadata.json        # enrich.js 生成の外部書誌情報
+│   ├── book-ai-comments.json     # generate-ai-comments.js 生成のAI推薦コメント
 │   ├── author-aliases.json       # 著者名エイリアステーブル
 │   └── book-corrections.json     # 書籍タイトル・著者名手動補正テーブル
 ├── scripts/
 │   ├── process.js                # 蔵書カタログ生成スクリプト
 │   ├── enrich.js                 # 外部書誌情報取得スクリプト
+│   ├── generate-ai-comments.js   # AI推薦コメント生成スクリプト（Gemini）
 │   └── list-missing-authors.js   # 著者名未設定書籍確認ツール
 ├── src/                          # SPA ソースコード
 │   ├── hooks/

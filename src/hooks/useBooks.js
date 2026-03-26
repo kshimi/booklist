@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 export function useBooks() {
   const [books, setBooks] = useState([]);
   const [bookMetadata, setBookMetadata] = useState({});
+  const [aiComments, setAiComments] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -28,10 +29,23 @@ export function useBooks() {
         return {};
       });
 
-    Promise.all([fetchBooks, fetchMetadata])
-      .then(([booksData, metadataData]) => {
+    const fetchAiComments = fetch('./data/book-ai-comments.json', { signal })
+      .then(res => {
+        if (!res.ok) return {};
+        return res.json();
+      })
+      .catch(err => {
+        if (err.name !== 'AbortError') {
+          console.warn('[useBooks] book-ai-comments.json fetch failed:', err.message);
+        }
+        return {};
+      });
+
+    Promise.all([fetchBooks, fetchMetadata, fetchAiComments])
+      .then(([booksData, metadataData, aiCommentsData]) => {
         setBooks(booksData);
         setBookMetadata(metadataData);
+        setAiComments(aiCommentsData);
         setLoading(false);
       })
       .catch(err => {
@@ -44,5 +58,5 @@ export function useBooks() {
     return () => controller.abort();
   }, []);
 
-  return { books, bookMetadata, loading, error };
+  return { books, bookMetadata, aiComments, loading, error };
 }
