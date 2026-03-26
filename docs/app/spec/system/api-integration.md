@@ -399,7 +399,7 @@ const comment = result.response.text();
 ```json
 {
   "9784774129846": {
-    "comment": "推薦コメントテキスト（日本語・200字程度）",
+    "comment": "推薦コメントテキスト（日本語・400字程度）",
     "generatedAt": "2026-03-26",
     "model": "gemini-1.5-flash"
   }
