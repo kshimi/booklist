@@ -54,6 +54,16 @@ VITE_GOOGLE_BOOKS_API_KEY=your_api_key_here
 
 > The app works without an API key (unauthenticated requests are rate-limited but functional).
 
+A Gemini API key is required to generate AI recommendation comments for the daily suggestion feature.
+Add it to `.env` (same file):
+
+```
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+> This key is only used by `scripts/generate-ai-comments.js` (Node.js, not exposed to the browser).
+> See [`docs/dev/gemini-api-setup.md`](gemini-api-setup.md) for setup instructions.
+
 ## Verification
 
 ```bash
@@ -75,3 +85,5 @@ Open `http://localhost:5173` (or the port shown in terminal) and confirm the boo
 | `npm test` | Run tests |
 | `npm run lint` | Run linter |
 | `node scripts/process.js` | Regenerate `data/books.json` from `data/booklist.csv` |
+| `node scripts/generate-ai-comments.js` | Generate AI recommendation comments (`data/book-ai-comments.json`) |
+| `node scripts/generate-ai-comments.js --days 30` | Generate comments for books featured in the next 30 days |

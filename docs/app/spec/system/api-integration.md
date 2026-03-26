@@ -1,15 +1,25 @@
 # 外部API連携設計
 
 **作成日**: 2026-02-28
-**ステータス**: ドラフト v0.1
+**更新日**: 2026-03-26
+**ステータス**: ドラフト v0.2
 **対象フェーズ**: フェーズ1（静的SPA）
 
 ---
 
-> 機能要件は [`docs/app/spec/functional/ui-features.md`](../functional/ui-features.md) F-11 を参照。
+> 機能要件は [`docs/app/spec/functional/ui-features.md`](../functional/ui-features.md) F-11, F-14 を参照。
 > 本ドキュメントは実装設計（HOW）を定義する。
 
 ## 1. 概要
+
+本プロジェクトで使用する外部APIは以下の2種類に分類される。
+
+| 区分 | 用途 | 呼び出し元 |
+|------|------|----------|
+| **書誌情報API**（ランタイム） | 書籍詳細の補完情報取得 | ブラウザ（クライアントサイドfetch） |
+| **Gemini API**（ビルド時） | 日替わりサジェスチョン用AIコメント生成 | Node.js スクリプト（手動実行） |
+
+### 書誌情報API（ランタイム）
 
 書籍詳細画面（S-2）において、ISBNが存在する書籍に対して外部書誌APIから補完情報（表紙・出版社・出版年・内容紹介）を取得する。
 
@@ -329,9 +339,79 @@ export function useExternalBookData(isbn) {
 
 ---
 
-## 9. 外部API参考情報
+---
+
+## 9. Gemini API（ビルド時・AIコメント生成）
+
+> 機能要件: F-14（日替わりサジェスチョン）
+> セットアップ手順: [`docs/dev/gemini-api-setup.md`](../../dev/gemini-api-setup.md)
+
+### 概要
+
+`scripts/generate-ai-comments.js` から呼び出し、日替わりサジェスチョン用の推薦コメントを生成する。
+ブラウザからは呼び出さない（APIキー保護のため）。
+
+| 項目 | 値 |
+|------|---|
+| SDK | `@google/generative-ai` |
+| モデル | `gemini-1.5-flash`（無料枠利用） |
+| 認証 | 環境変数 `GEMINI_API_KEY` |
+| 呼び出し元 | Node.js スクリプト（手動実行のみ） |
+
+### リクエスト仕様
+
+```javascript
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+const result = await model.generateContent(prompt);
+const comment = result.response.text();
+```
+
+### プロンプトテンプレート
+
+```
+以下の本について、読者の興味を引く推薦コメントを日本語で200字程度で書いてください。
+本の内容や特徴を簡潔に伝え、どんな人に向いているかも含めてください。
+
+タイトル: {title}
+著者: {author}
+ジャンル: {genre}
+あらすじ: {description}
+
+推薦コメントのみを出力してください（前置きや説明は不要です）。
+```
+
+- `{description}` が未取得の場合はあらすじ行を省略する
+
+### エラーハンドリング
+
+| エラー | 処理 |
+|--------|------|
+| 429 (quota exceeded) | 即座に処理中断。直前まで生成したコメントを `book-ai-comments.json` に保存して終了 |
+| その他APIエラー | エラーログを出力してスキップ（当該書籍はコメント未生成のまま） |
+
+### 出力データ構造: `data/book-ai-comments.json`
+
+キーは `books.json` の `id` フィールド。
+
+```json
+{
+  "9784774129846": {
+    "comment": "推薦コメントテキスト（日本語・200字程度）",
+    "generatedAt": "2026-03-26",
+    "model": "gemini-1.5-flash"
+  }
+}
+```
+
+---
+
+## 10. 外部API参考情報
 
 | API | ドキュメント |
 |-----|------------|
 | OpenBD | https://openbd.jp/ |
 | Google Books | https://developers.google.com/books/docs/v1/using |
+| Gemini API | https://ai.google.dev/gemini-api/docs |
