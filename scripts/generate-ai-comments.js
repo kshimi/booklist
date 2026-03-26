@@ -60,7 +60,7 @@ function buildPrompt(book, metadata) {
   const description = meta?.description;
 
   let prompt =
-    '以下の本について、読者の興味を引く推薦コメントを日本語で200字程度で書いてください。\n' +
+    '以下の本について、読者の興味を引く推薦コメントを日本語で400字程度で書いてください。\n' +
     '本の内容や特徴を簡潔に伝え、どんな人に向いているかも含めてください。\n\n' +
     `タイトル: ${book.title}\n` +
     `著者: ${book.author || '不明'}\n` +
