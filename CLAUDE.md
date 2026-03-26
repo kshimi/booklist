@@ -49,6 +49,11 @@ npm install
 # Generate books.json from CSV (data processing pipeline)
 node scripts/process.js
 
+# Generate AI recommendation comments for daily suggestion (requires GEMINI_API_KEY)
+node scripts/generate-ai-comments.js              # diff mode: ungenerated books only
+node scripts/generate-ai-comments.js --days 30    # prioritize next 30 days' featured books
+node scripts/generate-ai-comments.js --all        # regenerate all books
+
 # Start development server
 npm run dev
 
@@ -66,7 +71,9 @@ npm run build
 
 - Input data: `data/booklist.csv` (exported from Google Drive via Google Apps Script)
 - Generated catalog: `data/books.json` (do not edit manually; regenerate via `process.js`)
+- AI comments: `data/book-ai-comments.json` (do not edit manually; regenerate via `generate-ai-comments.js`)
 - No backend server — all runtime logic runs in the browser
+- `GEMINI_API_KEY` env var required for `generate-ai-comments.js`; see `docs/dev/gemini-api-setup.md`
 
 ## Workflow Reference
 

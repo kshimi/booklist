@@ -1,8 +1,8 @@
 # データパイプライン設計
 
 **作成日**: 2026-02-28
-**更新日**: 2026-03-03
-**ステータス**: ドラフト v0.2
+**更新日**: 2026-03-26
+**ステータス**: ドラフト v0.3
 **対象フェーズ**: フェーズ1（静的SPA）
 
 ---
@@ -377,16 +377,119 @@ const source = sources.has('google_drive') && sources.has('paper')
 
 ---
 
-## 4. スクリプト実装メモ
+---
+
+## 4. generate-ai-comments.js パイプライン（手動実行）
+
+> 機能要件: F-14（日替わりサジェスチョン）
+> API設計: [`docs/app/spec/system/api-integration.md`](api-integration.md) セクション9
+
+### 概要
+
+`data/books.json` の書籍に対して Gemini API で推薦コメントを生成し、`data/book-ai-comments.json` に保存する差分生成スクリプト。
+
+### 実行方法
+
+```bash
+# 差分生成（デフォルト: コメント未生成の書籍のみ）
+node scripts/generate-ai-comments.js
+
+# 今日から N 日後までの日替わり対象書籍を優先して生成
+node scripts/generate-ai-comments.js --days 30
+
+# 全書籍のコメントを再生成
+node scripts/generate-ai-comments.js --all
+```
+
+**前提条件**:
+- `data/books.json` が存在すること
+- `data/book-metadata.json` が存在すること（存在しない場合はあらすじなしでプロンプト送信）
+- 環境変数 `GEMINI_API_KEY` が設定されていること
+
+### パイプライン
+
+```
+data/books.json
+data/book-metadata.json（あらすじ取得済みの場合）
+data/book-ai-comments.json（既存データ。なければ空オブジェクト）
+    │
+    ▼ ステップ1: 対象書籍の特定
+    │  ・デフォルト: コメント未生成の書籍（book-ai-comments.json に id が存在しないもの）
+    │  ・--days N: 今日から N 日後までに日替わり対象となる書籍IDを事前計算し、
+    │              その中でコメント未生成のものを優先して対象とする
+    │  ・--all: 全書籍を対象（既生成含む再生成）
+    │
+    ▼ ステップ2: Gemini API 呼び出し（1件ずつ）
+    │  ・books.json からタイトル・著者・ジャンルを取得
+    │  ・book-metadata.json からあらすじを取得（なければプロンプトから省略）
+    │  ・プロンプトテンプレートに値を埋め込んで Gemini API に送信
+    │  ・APIキーは環境変数 GEMINI_API_KEY から取得
+    │  ・429 (quota exceeded) を受信した場合は即座に中断
+    │
+    ▼ ステップ3: book-ai-comments.json への保存
+       ・1件生成するたびに都度ファイルに書き込む（中断時のデータ損失を防ぐ）
+       ・既存データとマージして保存（既生成コメントは --all 指定時のみ上書き）
+```
+
+### --days オプションの書籍選出ロジック
+
+```javascript
+const EPOCH = new Date('2000-01-01');
+function bookIndexForDate(date, totalBooks) {
+  const days = Math.floor((date - EPOCH) / 86400000);
+  return days % totalBooks;
+}
+
+// 今日から N 日分の対象書籍IDを計算
+const today = new Date();
+const targetIds = new Set();
+for (let i = 0; i < N; i++) {
+  const date = new Date(today);
+  date.setDate(today.getDate() + i);
+  targetIds.add(books[bookIndexForDate(date, books.length)].id);
+}
+```
+
+### 出力仕様
+
+| 項目 | 仕様 |
+|------|------|
+| ファイルパス | `data/book-ai-comments.json` |
+| 文字コード | UTF-8 |
+| フォーマット | `JSON.stringify(data, null, 2)` |
+| キー | `books.json` の `id` フィールド |
+
+### コンソール出力
+
+```
+処理開始: 対象書籍 30件
+[1/30] 「タイトル」（著者名）... 完了
+[2/30] 「タイトル」（著者名）... 完了
+...
+[15/30] 「タイトル」（著者名）... 429 quota exceeded — 中断
+保存済み: 14件 → data/book-ai-comments.json
+```
+
+### 依存パッケージ
+
+```bash
+npm install @google/generative-ai
+```
+
+---
+
+## 5. スクリプト実装メモ
 
 ### ファイル構成
 
 ```
 scripts/
-└── process.js      # メインスクリプト（単一ファイル）
+├── process.js              # books.json 生成（外部ライブラリ不要）
+├── enrich.js               # book-metadata.json 生成
+└── generate-ai-comments.js # book-ai-comments.json 生成（@google/generative-ai 使用）
 ```
 
-外部ライブラリを使わず Node.js 標準モジュールのみで実装する:
+`process.js` は外部ライブラリを使わず Node.js 標準モジュールのみで実装する:
 - `fs` - ファイル読み書き
 - `path` - パス操作
 

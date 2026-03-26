@@ -7,7 +7,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "process": "node scripts/process.js",
-    "test": "node --test scripts/process.test.js scripts/enrich.test.js"
+    "test": "node --test scripts/process.test.js scripts/enrich.test.js scripts/generate-ai-comments.test.js"
   },
   "engines": {
     "node": ">=18"
@@ -18,6 +18,7 @@
     "recharts": "^2.13.3"
   },
   "devDependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "fast-xml-parser": "^5.4.1",

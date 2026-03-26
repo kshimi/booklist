@@ -4,9 +4,10 @@ import { useBooks } from './hooks/useBooks';
 import BookListPage from './pages/BookListPage';
 import BookDetailPage from './pages/BookDetailPage';
 import StatsDashboardPage from './pages/StatsDashboardPage';
+import DailySuggestion from './components/DailySuggestion';
 
 export default function App() {
-  const { books, bookMetadata, loading, error } = useBooks();
+  const { books, bookMetadata, aiComments, loading, error } = useBooks();
   const [activePage, setActivePage] = useState('list');
   const [selectedBook, setSelectedBook] = useState(null);
 
@@ -48,6 +49,12 @@ export default function App() {
         </div>
       </header>
       <main className="max-w-6xl mx-auto px-4 py-4">
+        <DailySuggestion
+          books={books}
+          bookMetadata={bookMetadata}
+          aiComments={aiComments}
+          onSelectBook={setSelectedBook}
+        />
         <Navigation activePage={activePage} onPageChange={setActivePage} />
         {activePage === 'list' && (
           <BookListPage
