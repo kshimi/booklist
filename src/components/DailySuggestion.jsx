@@ -1,11 +1,11 @@
-import { useDailySuggestion } from '../hooks/useDailySuggestion';
+import { getDailySuggestion } from '../utils/getDailySuggestion';
 
 function todayLabel() {
   return new Date().toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' });
 }
 
 export default function DailySuggestion({ books, bookMetadata, aiComments, onSelectBook }) {
-  const { book, comment, fallbackText } = useDailySuggestion(books, bookMetadata, aiComments);
+  const { book, comment, fallbackText } = getDailySuggestion(books, bookMetadata, aiComments);
 
   if (!book) return null;
 

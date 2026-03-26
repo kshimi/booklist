@@ -6,7 +6,7 @@ const EPOCH = new Date('2000-01-01');
  * Selection: deterministic by date — daysSinceEpoch(2000-01-01) % books.length
  * This must stay in sync with scripts/generate-ai-comments.js bookIndexForDate().
  */
-export function useDailySuggestion(books, bookMetadata, aiComments) {
+export function getDailySuggestion(books, bookMetadata, aiComments) {
   if (!books || books.length === 0) return { book: null, comment: null, fallbackText: null };
 
   const today = new Date();
