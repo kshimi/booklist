@@ -5,12 +5,10 @@ function todayLabel() {
 }
 
 export default function DailySuggestion({ books, bookMetadata, aiComments, onSelectBook }) {
-  const { book, comment, fallbackText } = getDailySuggestion(books, bookMetadata, aiComments);
+  const { book, comment, coverUrl, fallbackText } = getDailySuggestion(books, bookMetadata, aiComments);
 
   if (!book) return null;
 
-  const meta = bookMetadata?.[book.isbn] ?? bookMetadata?.[book.id] ?? null;
-  const coverUrl = meta?.coverUrl ?? null;
   const displayText = comment ?? fallbackText;
 
   return (

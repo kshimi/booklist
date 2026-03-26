@@ -17,7 +17,8 @@ export function getDailySuggestion(books, bookMetadata, aiComments) {
   const comment = aiEntry?.comment ?? null;
 
   const meta = bookMetadata?.[book.isbn] ?? bookMetadata?.[book.id] ?? null;
+  const coverUrl = meta?.coverUrl ?? null;
   const fallbackText = comment ? null : (meta?.description ?? null);
 
-  return { book, comment, fallbackText };
+  return { book, comment, coverUrl, fallbackText };
 }
