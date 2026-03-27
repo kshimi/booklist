@@ -108,14 +108,71 @@ function filterBooks(rows) {
   for (const row of rows) {
     const title = (row['Product Name'] || '').trim();
     const asin = (row['ASIN'] || '').trim();
+    const subscriptionType = (row['Subscription Order Type'] || '').trim();
 
     let reason = null;
     if (/\[ビデオ\]|\[Video\]/.test(title)) {
+      // Amazon video content with explicit [ビデオ]/[Video] tag
       reason = 'video';
-    } else if (/\[雑誌\]/.test(title)) {
+    } else if (/[\[［]雑誌[\]］]/.test(title)) {
+      // Magazines tagged with [雑誌] or ［雑誌］ (half-width or fullwidth brackets)
       reason = 'magazine';
     } else if (/無料|試し読み|お試し/.test(title)) {
+      // Free trial / sample editions
       reason = 'free_trial';
+    } else if (/\(字幕版\)|\(吹替版\)/.test(title)) {
+      // Movies sold via Kindle/Prime Video with subtitle/dub markers
+      reason = 'video';
+    } else if (/STARTER BOOK/.test(title)) {
+      // Promotional first-volume samples (e.g. ONE PIECE STARTER BOOK 1)
+      reason = 'starter_book';
+    } else if (subscriptionType === 'Subscription_Renewal') {
+      // Subscription renewals: Kindle Unlimited, Prime
+      reason = 'subscription';
+    } else if (/予告編/.test(title)) {
+      // Movie trailer collections
+      reason = 'video';
+    } else if (/^第[0-9０-９一二三四五六七八九十]+話/.test(title)) {
+      // Single TV episode sales (e.g. "第1話 戦車道、始めます！")
+      reason = 'video';
+    } else if (/リマスター版/.test(title)) {
+      // Remastered video editions (e.g. 進撃の巨人 リマスター版)
+      reason = 'video';
+    } else if (/リリース記念版/.test(title)) {
+      // Release-commemoration promotional editions
+      reason = 'promotional';
+    } else if (title === 'Not Applicable') {
+      // Placeholder entries with no meaningful title
+      reason = 'invalid';
+    } else if (/^るるぶ/.test(title) || /^地球の歩き方/.test(title)) {
+      // Travel guidebooks
+      reason = 'travel_guide';
+    } else if (/^(YouTube|NHKプラス|TVer|Silk Browser|AirScreen)([ (（]|$)/.test(title)) {
+      // Standalone app purchases
+      reason = 'app';
+    } else if (/\(MAGon\)/.test(title)) {
+      // MAGon digital magazine platform items
+      reason = 'magazine';
+    } else if (/^新潮文庫の100冊/.test(title)) {
+      // Annual promotional book catalog (not a book itself)
+      reason = 'promotional';
+    } else if (/^BRUTUS/.test(title)) {
+      // BRUTUS magazine special editions (not always tagged [雑誌])
+      reason = 'magazine';
+    } else if (/^(劇場版 ?)?SPEC([ 　～]|$)/.test(title)) {
+      // SPEC TV drama / theatrical film series sold as Kindle video items
+      reason = 'video';
+    } else if (/^ネタばれ注意！/.test(title)) {
+      // TV show digest summaries
+      reason = 'video';
+    } else if (
+      // Items not detectable by structural pattern; user-requested exclusions
+      ['RRR', '突然！２０５０年'].includes(title) ||
+      title === '新生グリー誕生' ||
+      /^(レモンエンジェル|ＨＯＴＥＬ|ＥＤＥＮ|ハンツー×トラッシュ|生贄投票)/.test(title) ||
+      /^一万円でオシャレになる方法/.test(title)
+    ) {
+      reason = 'excluded';
     }
 
     if (reason) {

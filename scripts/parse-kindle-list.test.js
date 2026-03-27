@@ -98,6 +98,12 @@ describe('filterBooks', () => {
     assert.equal(excluded[0].reason, 'magazine');
   });
 
+  test('excludes ［雑誌］ titles (fullwidth brackets) with reason magazine', () => {
+    const { books, excluded } = filterBooks([makeRow('BiCYCLE CLUB 2016年7月号　No.375［雑誌］')]);
+    assert.equal(books.length, 0);
+    assert.equal(excluded[0].reason, 'magazine');
+  });
+
   test('excludes titles containing 無料 with reason free_trial', () => {
     const { books, excluded } = filterBooks([makeRow('作品名【期間限定 無料お試し版】')]);
     assert.equal(books.length, 0);
@@ -138,6 +144,132 @@ describe('filterBooks', () => {
     const { books, excluded } = filterBooks(rows);
     assert.equal(books.length, 2);
     assert.equal(excluded.length, 1);
+  });
+
+  test('excludes movie with (字幕版) marker as video', () => {
+    const { excluded } = filterBooks([makeRow('コンテイジョン (字幕版)')]);
+    assert.equal(excluded[0].reason, 'video');
+  });
+
+  test('excludes movie with (吹替版) marker as video', () => {
+    const { excluded } = filterBooks([makeRow('コンテイジョン (吹替版)')]);
+    assert.equal(excluded[0].reason, 'video');
+  });
+
+  test('excludes STARTER BOOK titles with reason starter_book', () => {
+    const { excluded } = filterBooks([makeRow('ONE PIECE STARTER BOOK 1 (ジャンプコミックスDIGITAL)')]);
+    assert.equal(excluded[0].reason, 'starter_book');
+  });
+
+  test('excludes Subscription_Renewal rows with reason subscription', () => {
+    const row = { 'Product Name': 'Kindle Unlimited', 'ASIN': 'B001', 'Subscription Order Type': 'Subscription_Renewal' };
+    const { excluded } = filterBooks([row]);
+    assert.equal(excluded[0].reason, 'subscription');
+  });
+
+  test('excludes 予告編 titles as video', () => {
+    const { excluded } = filterBooks([makeRow('「ロード・オブ・ザ・リング」3部作予告編集')]);
+    assert.equal(excluded[0].reason, 'video');
+  });
+
+  test('excludes single TV episode titles starting with 第n話 as video', () => {
+    const { excluded } = filterBooks([makeRow('第1話 戦車道、始めます！')]);
+    assert.equal(excluded[0].reason, 'video');
+  });
+
+  test('excludes リマスター版 titles as video', () => {
+    const { excluded } = filterBooks([makeRow('進撃の巨人　悔いなき選択　リマスター版（１）')]);
+    assert.equal(excluded[0].reason, 'video');
+  });
+
+  test('excludes リリース記念版 titles as promotional', () => {
+    const { excluded } = filterBooks([makeRow('家に帰ると妻が必ず死んだふりをしています。3 【リリース記念版　特別書き下ろし4コマ】')]);
+    assert.equal(excluded[0].reason, 'promotional');
+  });
+
+  test('excludes "Not Applicable" exact title as invalid', () => {
+    const { excluded } = filterBooks([makeRow('Not Applicable')]);
+    assert.equal(excluded[0].reason, 'invalid');
+  });
+
+  test('keeps title that merely contains "Not Applicable" substring', () => {
+    const { books } = filterBooks([makeRow('This is Not Applicable to anything')]);
+    assert.equal(books.length, 1);
+  });
+
+  test('excludes るるぶ travel guidebooks as travel_guide', () => {
+    const { excluded } = filterBooks([makeRow('るるぶ台北\'15 (るるぶ情報版（海外）)')]);
+    assert.equal(excluded[0].reason, 'travel_guide');
+  });
+
+  test('excludes 地球の歩き方 travel guidebooks as travel_guide', () => {
+    const { excluded } = filterBooks([makeRow('地球の歩き方 ダイジェスト版 2014 Summer')]);
+    assert.equal(excluded[0].reason, 'travel_guide');
+  });
+
+  test('excludes YouTube app as app', () => {
+    const { excluded } = filterBooks([makeRow('YouTube')]);
+    assert.equal(excluded[0].reason, 'app');
+  });
+
+  test('excludes NHKプラス app as app', () => {
+    const { excluded } = filterBooks([makeRow('NHKプラス')]);
+    assert.equal(excluded[0].reason, 'app');
+  });
+
+  test('excludes MAGon magazine platform items as magazine', () => {
+    const { excluded } = filterBooks([makeRow('西田宗千佳のRandom Analysis 第021号[2013年1月9日発行] (MAGon)')]);
+    assert.equal(excluded[0].reason, 'magazine');
+  });
+
+  test('excludes 新潮文庫の100冊 catalog as promotional', () => {
+    const { excluded } = filterBooks([makeRow('新潮文庫の100冊 2025')]);
+    assert.equal(excluded[0].reason, 'promotional');
+  });
+
+  test('excludes BRUTUS magazine as magazine', () => {
+    const { excluded } = filterBooks([makeRow('BRUTUS特別編集　増補版 台湾')]);
+    assert.equal(excluded[0].reason, 'magazine');
+  });
+
+  test('excludes SPEC drama series as video', () => {
+    const { excluded } = filterBooks([makeRow('SPEC　I (角川文庫)')]);
+    assert.equal(excluded[0].reason, 'video');
+  });
+
+  test('excludes 劇場版SPEC as video', () => {
+    const { excluded } = filterBooks([makeRow('劇場版SPEC～結～爻ノ篇 (角川文庫)')]);
+    assert.equal(excluded[0].reason, 'video');
+  });
+
+  test('excludes ネタばれ注意！ TV digest as video', () => {
+    const { excluded } = filterBooks([makeRow('ネタばれ注意！24シーズン2 早分かりダイジェスト')]);
+    assert.equal(excluded[0].reason, 'video');
+  });
+
+  test('excludes RRR as excluded', () => {
+    const { excluded } = filterBooks([makeRow('RRR')]);
+    assert.equal(excluded[0].reason, 'excluded');
+  });
+
+  test('excludes 突然！２０５０年 as excluded', () => {
+    const { excluded } = filterBooks([makeRow('突然！２０５０年')]);
+    assert.equal(excluded[0].reason, 'excluded');
+  });
+
+  test('excludes 新生グリー誕生 as excluded', () => {
+    const { excluded } = filterBooks([makeRow('新生グリー誕生')]);
+    assert.equal(excluded[0].reason, 'excluded');
+  });
+
+  test('excludes ＥＤＥＮ manga as excluded', () => {
+    const { excluded } = filterBooks([makeRow('ＥＤＥＮ（１） (アフタヌーンコミックス)')]);
+    assert.equal(excluded[0].reason, 'excluded');
+  });
+
+  test('excludes 生贄投票 as excluded', () => {
+    const { excluded } = filterBooks([makeRow('生贄投票（１） (ヤングマガジンコミックス)')]);
+    assert.equal(excluded[0].reason, 'excluded');
   });
 });
 
