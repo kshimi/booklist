@@ -1,0 +1,32 @@
+{
+  "B013DZ3RM6": {
+    "author": "福西 勇夫, 杉山 律子",
+    "pages": 192,
+    "enrichedAt": "2026-03-27",
+    "model": "gemini-2.5-flash-lite"
+  },
+  "B00I8PIBEG": {
+    "author": "北村晴臣",
+    "pages": 192,
+    "enrichedAt": "2026-03-27",
+    "model": "gemini-2.5-flash-lite"
+  },
+  "B00VFNCX2Y": {
+    "author": "有光 興記",
+    "pages": 192,
+    "enrichedAt": "2026-03-27",
+    "model": "gemini-2.5-flash-lite"
+  },
+  "B00JA05KI8": {
+    "author": "小川 膦",
+    "pages": 208,
+    "enrichedAt": "2026-03-27",
+    "model": "gemini-2.5-flash-lite"
+  },
+  "B00LSQ8G4W": {
+    "author": "飯田 岳志",
+    "pages": 192,
+    "enrichedAt": "2026-03-27",
+    "model": "gemini-2.5-flash-lite"
+  }
+}
