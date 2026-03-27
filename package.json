@@ -7,7 +7,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "process": "node scripts/process.js",
-    "test": "node --test scripts/parse-kindle-list.test.js scripts/process.test.js scripts/enrich.test.js scripts/generate-ai-comments.test.js"
+    "test": "node --test scripts/parse-kindle-list.test.js scripts/process.test.js scripts/enrich.test.js scripts/generate-ai-comments.test.js scripts/enrich-gemini.test.js"
   },
   "engines": {
     "node": ">=18"
