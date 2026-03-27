@@ -204,6 +204,200 @@ describe('makeGroupKey', () => {
     const key = makeGroupKey('三体Ⅱ　黒暗森林（上）');
     assert.ok(key.includes('Ⅱ'), `Key should retain Ⅱ in title, got: ${key}`);
   });
+
+  // Publisher suffix stripping
+  test('strips publisher suffix before applying 全角数字 volume pattern', () => {
+    assert.equal(makeGroupKey('ハコヅメ～交番女子の逆襲～（１７） (モーニングコミックス)'), 'ハコヅメ～交番女子の逆襲～');
+  });
+
+  test('strips publisher suffix before applying fullwidth-space + digits pattern', () => {
+    assert.equal(makeGroupKey('弱虫ペダル　16 (少年チャンピオン・コミックス)'), '弱虫ペダル');
+  });
+
+  test('strips publisher suffix before applying half-width paren volume pattern', () => {
+    assert.equal(makeGroupKey('罠ガール(7) (電撃コミックスNEXT)'), '罠ガール');
+  });
+
+  test('strips publisher suffix with ASCII publisher name', () => {
+    assert.equal(makeGroupKey('ダンジョン飯 9巻 (HARTA COMIX)'), 'ダンジョン飯');
+  });
+
+  test('does not strip paren content starting with a digit (volume pattern)', () => {
+    // "(7)" starts with digit — should NOT be stripped by publisher strip, still matched by pattern 5
+    assert.equal(makeGroupKey('罠ガール(7)'), '罠ガール');
+  });
+
+  // New volume patterns
+  test('removes fullwidth space + Arabic digits (priority 6b)', () => {
+    assert.equal(makeGroupKey('弱虫ペダル　16'), '弱虫ペダル');
+  });
+
+  test('removes half-width space + digits + 巻 (priority 4b)', () => {
+    assert.equal(makeGroupKey('ダンジョン飯 9巻'), 'ダンジョン飯');
+  });
+
+  test('removes fullwidth space + fullwidth digits + 巻 (priority 4b)', () => {
+    assert.equal(makeGroupKey('ゆるキャン△　１６巻'), 'ゆるキャン△');
+  });
+
+  // Pattern 4 fix: mixed digit width in fullwidth brackets
+  test('removes fullwidth brackets with half-width digit (priority 4 fix)', () => {
+    assert.equal(makeGroupKey('秘本玉くしけ（1）'), '秘本玉くしけ');
+  });
+
+  // 【特典付き】 strip
+  test('strips 【特典付き】 before applying 巻 pattern', () => {
+    assert.equal(makeGroupKey('ゆるキャン△　１０巻【特典付き】 (まんがタイムＫＲコミックス)'), 'ゆるキャン△');
+  });
+
+  // Volume bracket mid-title + trailing text strip
+  test('strips text after volume bracket in middle of title (チェーザレ pattern)', () => {
+    assert.equal(makeGroupKey('チェーザレ（１）　破壊の創造者 チェーザレ　破壊の創造者 (モーニングコミックス)'), 'チェーザレ');
+  });
+
+  test('strips 「Series」シリーズ suffix after volume bracket (太平記)', () => {
+    assert.equal(makeGroupKey('太平記（一） 「太平記」シリーズ (角川文庫)'), '太平記');
+  });
+
+  test('strips series suffix after 上下 bracket (夜はやさし)', () => {
+    assert.equal(makeGroupKey('夜はやさし（上） 「夜はやさし」シリーズ (角川文庫)'), '夜はやさし');
+  });
+
+  // 見仏記 pattern: fullwidth digit + fullwidth space + subtitle
+  test('strips attached digit and subtitle (見仏記 pattern)', () => {
+    assert.equal(makeGroupKey('見仏記２　仏友篇 (角川文庫)'), '見仏記');
+  });
+
+  test('title without volume number is unchanged (見仏記 vol.1)', () => {
+    assert.equal(makeGroupKey('見仏記 (角川文庫)'), '見仏記');
+  });
+
+  // 海猿 pattern: fullwidth digits directly attached
+  test('removes fullwidth digits directly attached (priority 6c)', () => {
+    assert.equal(makeGroupKey('海猿１'), '海猿');
+  });
+
+  test('removes multi-digit fullwidth number directly attached', () => {
+    assert.equal(makeGroupKey('海猿１２'), '海猿');
+  });
+
+  // 北斎漫画 pattern: 〈全n巻〉 + 第n巻
+  test('strips 〈全n巻〉 annotation and 第n巻 suffix (北斎漫画)', () => {
+    assert.equal(makeGroupKey('北斎漫画〈全５巻〉 第１巻'), '北斎漫画');
+  });
+
+  // 限界集落 pattern: 第[漢数字]巻 directly attached
+  test('strips 第[漢数字]巻 directly attached (限界集落)', () => {
+    assert.equal(makeGroupKey('限界集落(ギリギリ)温泉第一巻'), '限界集落(ギリギリ)温泉');
+  });
+
+  test('strips 第四巻 (漢数字)', () => {
+    assert.equal(makeGroupKey('限界集落(ギリギリ)温泉第四巻'), '限界集落(ギリギリ)温泉');
+  });
+
+  // ローマ人の物語 pattern: ── prefix + Roman numeral after ]
+  test('strips ── subtitle prefix and Roman numeral after ] (ローマ人の物語)', () => {
+    assert.equal(makeGroupKey('ローマは一日にして成らず──ローマ人の物語［電子版］I'), 'ローマ人の物語［電子版］');
+  });
+
+  test('strips multi-char Roman numeral after ] (XIV)', () => {
+    assert.equal(makeGroupKey('キリストの勝利──ローマ人の物語［電子版］XIV'), 'ローマ人の物語［電子版］');
+  });
+
+  // レンズマン pattern: ・シリーズ label used as group key
+  test('uses ・シリーズ label as group key', () => {
+    assert.equal(makeGroupKey('グレー・レンズマン レンズマン・シリーズ'), 'レンズマン・シリーズ');
+  });
+
+  test('same ・シリーズ key for different books in series', () => {
+    assert.equal(makeGroupKey('ファースト・レンズマン レンズマン・シリーズ'), 'レンズマン・シリーズ');
+  });
+
+  // ムショ医 pattern: half-width digits directly attached
+  test('removes half-width digit directly attached (ムショ医 pattern)', () => {
+    assert.equal(makeGroupKey('ムショ医1'), 'ムショ医');
+  });
+
+  test('removes multi-digit half-width number directly attached', () => {
+    assert.equal(makeGroupKey('ムショ医5'), 'ムショ医');
+  });
+
+  test('removes wave-dash subtitle e.g. ムショ医 ～再診～', () => {
+    assert.equal(makeGroupKey('ムショ医 ～再診～'), 'ムショ医');
+  });
+
+  // ピーターラビット pattern: leading 【...】 + enclosed digit + subtitle
+  test('strips leading 【対訳】 and enclosed digit + subtitle', () => {
+    assert.equal(
+      makeGroupKey('【対訳】ピーターラビット ①　ピーターラビットのおはなし　-THE TALE OF PETER RABBIT-'),
+      'ピーターラビット'
+    );
+  });
+
+  test('strips leading 【対訳】 and enclosed ② + subtitle', () => {
+    assert.equal(
+      makeGroupKey('【対訳】ピーターラビット ②　ベンジャミンバニーのおはなし　-THE TALE OF BENJAMIN BUNNY-'),
+      'ピーターラビット'
+    );
+  });
+
+  // 犬のかがやき pattern: subtitle ending with 編
+  test('strips half-width space + subtitle + 編', () => {
+    assert.equal(makeGroupKey('犬のかがやき かにとなかよく編'), '犬のかがやき');
+  });
+
+  test('strips fullwidth space + subtitle + 編 (long subtitle)', () => {
+    assert.equal(
+      makeGroupKey('犬のかがやき　実在の商品とか 固有名詞とかが出てくる ものを全部この巻に まとめているから 何かあった時は これを消すだけで 大丈夫編'),
+      '犬のかがやき'
+    );
+  });
+
+  test('strips fullwidth space + 日常編 after volume number strip', () => {
+    // Step 6b strips 　1 first, then 編 pattern strips 　日常編
+    assert.equal(makeGroupKey('犬のかがやき　日常編　1'), '犬のかがやき');
+  });
+
+  // 太平記（ニ）pattern: katakana ニ treated as volume number
+  test('handles katakana ニ as volume number in brackets', () => {
+    assert.equal(makeGroupKey('太平記（ニ） 「太平記」シリーズ (角川文庫)'), '太平記');
+  });
+
+  // 火星の人 pattern: 〔新版〕 annotation + half-width space + 上/下
+  test('strips 〔〕 editorial annotation and half-width space + 上', () => {
+    assert.equal(makeGroupKey('火星の人〔新版〕 上 (ハヤカワ文庫SF)'), '火星の人');
+  });
+
+  test('strips 〔〕 annotation and half-width space + 下', () => {
+    assert.equal(makeGroupKey('火星の人〔新版〕 下 (ハヤカワ文庫SF)'), '火星の人');
+  });
+
+  // 銃・病原菌・鉄 pattern: 全角space + 上下 + 巻
+  test('strips fullwidth-space + 上巻', () => {
+    assert.equal(makeGroupKey('銃・病原菌・鉄　上巻'), '銃・病原菌・鉄');
+  });
+
+  test('strips fullwidth-space + 下巻', () => {
+    assert.equal(makeGroupKey('銃・病原菌・鉄　下巻'), '銃・病原菌・鉄');
+  });
+
+  // 史記 pattern: half-width space + digit + space + subtitle + 上/下
+  test('strips half-width space + digit + subtitle + 上 (史記 pattern)', () => {
+    assert.equal(makeGroupKey('史記 1 項羽と劉邦 上'), '史記');
+  });
+
+  test('strips half-width space + digit + subtitle (multi-digit)', () => {
+    assert.equal(makeGroupKey('史記 4 呉越燃ゆ 上'), '史記');
+  });
+
+  // ブス界 pattern: fullwidth-space + digit + colon + subtitle
+  test('strips fullwidth-space + digit + colon + subtitle (ブス界 pattern)', () => {
+    assert.equal(makeGroupKey('ブス界へようこそ　１: 闘え、私。'), 'ブス界へようこそ');
+  });
+
+  test('strips fullwidth-space + multi-digit + colon + subtitle', () => {
+    assert.equal(makeGroupKey('ブス界へようこそ　10: 桔梗信玄'), 'ブス界へようこそ');
+  });
 });
 
 // ---------------------------------------------------------------------------

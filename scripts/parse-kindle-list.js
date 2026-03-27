@@ -133,34 +133,99 @@ function filterBooks(rows) {
 const VOLUME_PATTERNS = [
   // Priority 1: （上）（下）（中）
   /[（(][上下中][）)]\s*$/,
-  // Priority 2: trailing 全角space + 上/下/中
-  /[\u3000　]\s*[上下中]\s*$/,
-  // Priority 3: 漢数字 in （） e.g. （一）〜（十...）
-  /[（(][一二三四五六七八九十百千万]+[）)]\s*$/,
-  // Priority 4: 全角アラビア数字 in （） e.g. （１）〜（n）
-  /[（(][０-９]+[）)]\s*$/,
+  // Priority 2: trailing 全角space + 上/下/中 (+ optional 巻) e.g. "　上", "　下巻"
+  /[\u3000　]\s*[上下中]巻?\s*$/,
+  // Priority 2b: trailing 半角space + 上/下/中 (+ optional 巻) e.g. " 上", " 下巻"
+  / [上下中]巻?\s*$/,
+  // Priority 3: 漢数字 or katakana ニ in （） e.g. （一）〜（十...）, （ニ）
+  /[（(][一二三四五六七八九十百千万ニ]+[）)]\s*$/,
+  // Priority 4: digits in （）— fullwidth or half-width digits, fullwidth or half-width brackets
+  /[（(][０-９0-9]+[）)]\s*$/,
+  // Priority 4b: digits + 巻 e.g. " 9巻", "　１６巻"
+  /[ \u3000　][０-９0-9]+巻\s*$/,
   // Priority 5: 半角数字 in () e.g. (7)
   /\([0-9]+\)\s*$/,
   // Priority 6: trailing half-width space + Arabic digits (but not if the number is part of a title like "三体Ⅱ")
   / [0-9]+\s*$/,
-  // Priority 7: Roman numeral suffix at end (I through XV etc.) — only at end, not within title
+  // Priority 6b: trailing fullwidth space + Arabic digits e.g. "弱虫ペダル　16"
+  /[\u3000　][0-9]+\s*$/,
+  // Priority 6c: digits directly attached (no space) — fullwidth e.g. "海猿１２" or half-width e.g. "ムショ医1"
+  /[０-９0-9]+\s*$/,
+  // Priority 6d: 第n巻 suffix (with or without preceding space) e.g. "第１巻", "第一巻", "限界集落(ギリギリ)温泉第四巻"
+  /[ \u3000　]?第[０-９0-9一二三四五六七八九十百千万]+巻?\s*$/,
+  // Priority 7: Roman numeral suffix at end (I through XV etc.) — only at end, not within title.
+  // NOTE: Intentionally broad — matches any trailing 1-6 char combination of I/V/X.
+  // False positives are possible but rare for Japanese book titles.
   / [IVXivx]{1,6}\s*$/,
+  // Priority 8: enclosed circled digit ①-⑳ followed by subtitle e.g. "ピーターラビット ①　おはなし　-TITLE-"
+  / [\u2460-\u2473].+$/,
+  // Priority 9: wave-dash subtitle e.g. "ムショ医 ～再診～"
+  / ～[^～]+～\s*$/,
+  // Priority 10: space + subtitle ending in 編 e.g. "犬のかがやき かにとなかよく編", "犬のかがやき　日常編"
+  // NOTE: Applied last as it is the most aggressive; only triggers when no other pattern matches.
+  /[ \u3000　].+編\s*$/,
 ];
 
 /**
  * Generate a group key by stripping volume suffixes from a title.
- * Tries patterns in priority order; removes the first match found.
- * Also strips trailing whitespace.
+ * Applies a series of pre-strip transformations before trying VOLUME_PATTERNS.
  */
 function makeGroupKey(title) {
   let key = title;
-  for (const pattern of VOLUME_PATTERNS) {
-    const stripped = key.replace(pattern, '').trim();
-    if (stripped !== key.trim() && stripped.length > 0) {
-      return stripped;
+
+  // 1. Strip trailing publisher/series suffix in half-width parens e.g. " (モーニングコミックス)".
+  //    Only removes parens whose content starts with a non-digit, preserving "(7)"-style volume patterns.
+  key = key.replace(/\s*\([^\d()][^()]*\)\s*$/, '').trim();
+
+  // 2. Strip leading and trailing 【...】 markers e.g. "【対訳】" prefix or "【特典付き】" suffix.
+  key = key.replace(/^【[^】]*】\s*/, '').replace(/\s*【[^】]*】\s*$/, '').trim();
+
+  // 3. Strip volume-count annotations e.g. "〈全５巻〉".
+  key = key.replace(/\s*〈全[０-９0-9]+巻〉\s*/g, ' ').trim();
+
+  // 3b. Strip editorial annotations in 〔〕 e.g. "〔新版〕".
+  key = key.replace(/\s*〔[^〕]*〕\s*/g, ' ').trim();
+
+  // 4. Strip subtitle prefix before "──" separator e.g. "サブタイトル──シリーズ名 I" → "シリーズ名 I".
+  //    Used in some publishers' format (e.g. ローマ人の物語[電子版]).
+  key = key.replace(/^.+──/, '').trim();
+
+  // 5. If title ends with " {word}・シリーズ", use the series label as the group key
+  //    e.g. "グレー・レンズマン レンズマン・シリーズ" → "レンズマン・シリーズ".
+  const seriesLabelMatch = key.match(/^.+\s(\S+・シリーズ)\s*$/);
+  if (seriesLabelMatch) return seriesLabelMatch[1];
+
+  // 6. Strip text that follows a volume bracket mid-title e.g. "チェーザレ（１）　副題 シリーズ名" → "チェーザレ（１）".
+  //    Applies when 上下中, digit/kanji/katakana ニ in brackets appears before more text.
+  key = key.replace(/([（(][上下中一二三四五六七八九十百千万ニ０-９0-9]+[）)])\s*.+$/, '$1').trim();
+
+  // 7. Strip Roman numeral directly after "]" or "］" e.g. "ローマ人の物語［電子版］XIV" → "ローマ人の物語［電子版］".
+  key = key.replace(/(?<=[\]］])[IVXivx]{1,6}\s*$/, '').trim();
+
+  // 8. Strip fullwidth-digit + fullwidth-space + subtitle e.g. "見仏記２　仏友篇" → "見仏記".
+  key = key.replace(/[０-９0-9]+[\u3000　].+$/, '').trim();
+
+  // 8b. Strip fullwidth-space + digit(s) + colon + subtitle e.g. "ブス界へようこそ　10: 桔梗信玄" → "ブス界へようこそ".
+  key = key.replace(/[\u3000　][０-９0-9]+:.+$/, '').trim();
+
+  // 8c. Strip half-width space + digit(s) + space + subtitle e.g. "史記 1 項羽と劉邦 上" → "史記".
+  key = key.replace(/ [0-9]+ .+$/, '').trim();
+
+  // Apply VOLUME_PATTERNS repeatedly until no more patterns match.
+  // This handles stacked suffixes e.g. "犬のかがやき　日常編　1" → strip "　1" → strip "　日常編" → "犬のかがやき".
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const pattern of VOLUME_PATTERNS) {
+      const stripped = key.replace(pattern, '').trim();
+      if (stripped !== key.trim() && stripped.length > 0) {
+        key = stripped;
+        changed = true;
+        break;
+      }
     }
   }
-  return key.trim();
+  return key;
 }
 
 /**
