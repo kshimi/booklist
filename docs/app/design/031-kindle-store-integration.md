@@ -52,6 +52,18 @@ Amazonの「デジタル注文履歴」からダウンロードしたCSVファ�
 - 1件の購入が `Component Type`（Tax / Price Amount 等）ごとに複数行に分かれるため、ASINで重複排除が必要
 - `Product Name` に `[雑誌]` `[ビデオ]` 等の種別サフィックスが付く場合がある
 
+**著者・出版社情報の取得について:**
+
+ASINをキーにした書誌情報取得は以下の理由から現時点では対象外とする。
+
+| 手段 | 可否 | 理由 |
+|------|------|------|
+| Amazon Product Advertising API | 困難 | 申請・審査が必要。個人利用では取得しにくい |
+| openBD / Google Books API（既存） | 一部可能 | ISBNベースのAPI。ASINとISBNは1対1ではなく、Kindle版はISBNを持たない場合が多い |
+| Amazon商品ページのスクレイピング | 対象外 | 利用規約違反 |
+
+著者名は空文字列のまま `books.json` に登録する。将来的に `enrich.js` をASIN対応に拡張する際の検討課題とする。
+
 ### 前処理スクリプト（`scripts/parse-kindle-list.js`）
 
 `kindle-list.csv` を読み込み、書籍データを抽出・整形して `data/kindle-books.json` を出力する独立スクリプト。`process.js` の前段として手動実行する。
@@ -71,9 +83,26 @@ Amazonの「デジタル注文履歴」からダウンロードしたCSVファ�
 | 雑誌 | タイトルに `[雑誌]` を含む | `山と溪谷 2019年 2月号 [雑誌]` |
 | 無料・試し読み版 | タイトルに `無料`、`試し読み`、`お試し` のいずれかを含む | `作品名【期間限定 無料お試し版】`、`作品名 無料試し読み版` |
 
+除外されたレコードは確認用に `data/kindle-excluded.csv` へ出力する（UIには反映しない）。
+
+| カラム | 内容 |
+|--------|------|
+| `asin` | ASIN |
+| `title` | 元のProduct Name |
+| `reason` | 除外理由（`video` / `magazine` / `free_trial`） |
+
 #### Step 3: 複数巻統合
 
 同一作品の上下巻・複数巻を1件に統合する。
+
+統合されたレコードは確認用に `data/kindle-merged.csv` へ出力する（UIには反映しない）。
+
+| カラム | 内容 |
+|--------|------|
+| `title` | 統合後のタイトル（グループキー） |
+| `asin` | 代表ASIN |
+| `merged_titles` | 統合前のタイトル一覧（`\|` 区切り） |
+| `merged_asins` | 統合前のASIN一覧（`\|` 区切り） |
 
 **グループキーの生成:**
 
@@ -235,8 +264,13 @@ F-1c: Kindle書籍インポート
 - `data/book-metadata.json`（ISBNがある本は自動的に書誌情報取得対象に）
 
 **ファイル管理方針:**
-- `data/kindle-list.csv`: Amazonからの取得データ。Git管理対象外（個人情報含む）
-- `data/kindle-books.json`: 前処理スクリプトの出力。Git管理対象外（実行環境で生成）
+
+| ファイル | 用途 | Git管理 |
+|---------|------|---------|
+| `data/kindle-list.csv` | Amazon取得データ（入力） | 対象外（個人情報含む） |
+| `data/kindle-books.json` | 前処理出力（process.jsへの入力） | 対象外（実行環境で生成） |
+| `data/kindle-excluded.csv` | 除外レコード確認用 | 対象外（実行環境で生成） |
+| `data/kindle-merged.csv` | 統合レコード確認用 | 対象外（実行環境で生成） |
 
 ---
 
@@ -261,6 +295,8 @@ F-1c: Kindle書籍インポート
 | ローマ数字サフィックス（`XIV`） | 1件に統合される |
 | 統合後の代表ASINはグループ内最初のASIN | 正しい代表ASINが設定される |
 | `asins` フィールドに全ASIN一覧が含まれる | 統合前の全ASINが記録される |
+| 除外されたレコードが `kindle-excluded.csv` に出力される | ASIN・タイトル・除外理由が記録される |
+| 統合されたグループが `kindle-merged.csv` に出力される | 統合前タイトル・ASIN一覧が記録される |
 
 ### process.js のテスト
 
