@@ -1,8 +1,8 @@
 # アーキテクチャ
 
 **作成日**: 2026-02-28
-**更新日**: 2026-03-03
-**ステータス**: ドラフト v0.3
+**更新日**: 2026-03-27
+**ステータス**: ドラフト v0.4
 **対象フェーズ**: フェーズ1（静的SPA）
 
 ---
@@ -13,20 +13,27 @@
 
 ```
 【ビルド前工程（データ処理）】
-Google Drive                    data/offline_bibliography_list.csv
-  └─ Google Apps Script で         （紙書籍リスト・手動作成）
-     CSV 取得
-        │                                │
-        ▼                                │
-data/booklist.csv                        │
-  └─ node scripts/process.js ───────────┘
-        │  ・CSVパース・ファイル名メタデータ抽出
-        │  ・オフライン書誌CSVパース・ジャンルマッピング
-        │  ・著者名正規化・エイリアス解決（両ソース共通）
-        │  ・ジャンル推定（フォルダパスベース）
-        │  ・重複排除・書籍統合・source フィールド付与
-        ▼
-data/books.json（882件）
+Google Drive      data/offline_bibliography_list.csv    data/kindle-list.csv
+  └─ GAS で            （紙書籍リスト・手動作成）          （Amazon注文履歴CSV）
+     CSV 取得                                                    │
+        │                        │               node scripts/parse-kindle-list.js
+        ▼                        │                    ├─ 書籍絞り込み（映画・雑誌・無料除外）
+data/booklist.csv                │                    ├─ 複数巻統合（上下巻・シリーズ）
+        │                        │                    ├─ data/kindle-excluded.csv（確認用）
+        │                        │                    ├─ data/kindle-merged.csv（確認用）
+        │                        │                    └─ data/kindle-books.json
+        │                        │                            │
+        └────────────────────────┴────────────────────────────┘
+                                 │
+                    node scripts/process.js
+                         │  ・CSVパース・ファイル名メタデータ抽出（F-1）
+                         │  ・オフライン書誌CSVパース・ジャンルマッピング（F-1b）
+                         │  ・Kindle書籍JSONインポート（F-1c）
+                         │  ・著者名正規化・エイリアス解決（全ソース共通）
+                         │  ・ジャンル推定（フォルダパス / タイトルキーワード）
+                         │  ・重複排除・書籍統合・source フィールド付与
+                         ▼
+data/books.json
 
 data/books.json
   └─ node scripts/enrich.js          ← 手動実行（任意のタイミング）
@@ -53,11 +60,11 @@ PC または iPad のブラウザ
         ├─ 日替わりサジェスチョン（ヘッダー直下・常時表示）
         │    └─ 日付ベースの決定論的選出 + Gemini 生成コメント表示
         ├─ 書籍一覧（検索・フィルタ・ソート）
-        │    └─ 書籍カードに source バッジ（PDF / 紙）を表示
+        │    └─ 書籍カードに source バッジ（PDF / 紙 / Kindle）を表示
         ├─ 書籍詳細
-        │    ├─ source === "google_drive" → Google Drive リンク表示
-        │    ├─ source === "paper" → 「紙書籍として所持」を表示（リンクなし）
-        │    ├─ source が両方 → リンクと「紙書籍としても所持」を表示
+        │    ├─ source に "google_drive" → Google Drive リンク表示
+        │    ├─ source に "paper" → 「紙書籍として所持」を表示（リンクなし）
+        │    ├─ source に "amazon_kindle" → Amazon商品ページリンク表示（asin がある場合）
         │    ├─ book-metadata.json にデータあり → 即時表示
         │    └─ book-metadata.json にデータなし → openBD / Google Books をランタイム呼び出し
         └─ 統計ダッシュボード（ジャンル分布・著者ランキング）
@@ -85,12 +92,17 @@ booklist/
 ├── data/
 │   ├── booklist.csv              # Google Apps Script 出力（入力データ）
 │   ├── offline_bibliography_list.csv  # 紙書籍リスト（手動作成・入力データ）
+│   ├── kindle-list.csv           # Amazon注文履歴CSV（入力データ・Git管理対象外）
+│   ├── kindle-books.json         # parse-kindle-list.js 出力（Git管理対象外）
+│   ├── kindle-excluded.csv       # Kindle除外レコード確認用（Git管理対象外）
+│   ├── kindle-merged.csv         # Kindle統合レコード確認用（Git管理対象外）
 │   ├── books.json                # process.js 生成の蔵書カタログ
 │   ├── book-metadata.json        # enrich.js 生成の外部書誌情報
 │   ├── book-ai-comments.json     # generate-ai-comments.js 生成のAI推薦コメント
 │   ├── author-aliases.json       # 著者名エイリアステーブル
 │   └── book-corrections.json     # 書籍タイトル・著者名手動補正テーブル
 ├── scripts/
+│   ├── parse-kindle-list.js      # Kindle注文履歴CSV前処理スクリプト
 │   ├── process.js                # 蔵書カタログ生成スクリプト
 │   ├── enrich.js                 # 外部書誌情報取得スクリプト
 │   ├── generate-ai-comments.js   # AI推薦コメント生成スクリプト（Gemini）
@@ -114,24 +126,21 @@ booklist/
 #### process.js パイプライン
 
 ```
-data/booklist.csv              data/offline_bibliography_list.csv
-    │                                  │
-    ▼ F-1: CSVインポート・             ▼ F-1b: オフラインCSVパース
-    │       メタデータパース            │  ・ジャンルマッピングテーブルで変換
-    │  ・application/pdf のみ対象      │  ・著者名正規化・エイリアス解決
-    │  ・管理用ファイルを除外           │  ・source = "paper" を付与
-    │  ・ファイル名から順次抽出:        │
-    │      バージョン → 拡張子除去     │
-    │      → ISBN → ページ数          │
-    │      → シリーズ名 → 著者名      │
-    │      → タイトル                 │
-    │  ・著者名補完パターン             │
-    │  ・book-corrections.json 上書き  │
-    │  ・source = "google_drive"       │
-    └──────────────────┬───────────────┘
-                       │ レコード結合
+data/booklist.csv   data/offline_bibliography_list.csv   data/kindle-books.json
+    │                          │                          （parse-kindle-list.js 出力）
+    ▼ F-1: CSVインポート・      ▼ F-1b: オフラインCSVパース  ▼ F-1c: Kindle書籍インポート
+    │       メタデータパース    │  ・ジャンルマッピング        │  ・タイトル・ASIN を取得
+    │  ・application/pdf のみ  │  ・著者名正規化             │  ・著者名は空文字列
+    │  ・管理用ファイルを除外   │  ・source = "paper"        │  ・ジャンルはキーワード推定
+    │  ・ファイル名パース        │                           │  ・source = "amazon_kindle"
+    │  ・著者名正規化・補完      │                           │
+    │  ・book-corrections 上書き│                           │
+    │  ・source = "google_drive"│                           │
+    └──────────────────────────┴───────────────────────────┘
+                                       │ レコード結合
     ▼ F-2: ジャンル推定（大ジャンル）
     │  ・フォルダパスのキーワードマッチ（優先順位付き）
+    │  ・フォルダパスなしの場合はタイトル・著者名・シリーズ名で補完
     │  ・11ジャンル（SF / フィクション（日本）/ エッセイ / …/ 未分類）
     │
     ▼ F-2b: サブジャンル推定
@@ -140,10 +149,10 @@ data/booklist.csv              data/offline_bibliography_list.csv
     ▼ F-3: 重複排除・書籍統合
     │  ・統合キー: ISBN あり → ISBN、なし → タイトル
     │  ・オリジナル版のタイトル・著者を優先
-    │  ・source を集約（単一 or 配列）
+    │  ・source を集約（単一値 or アルファベット順配列）
     │
     ▼ F-4: books.json 生成
-       ・UTF-8、882件（2026-03-03時点）
+       ・UTF-8
 ```
 
 #### enrich.js パイプライン（手動実行）
@@ -173,13 +182,14 @@ data/book-metadata.json（既存データ。なければ空オブジェクト）
 
 ```json
 {
-  "id": "一意識別子（ISBN またはタイトルハッシュ）",
+  "id": "一意識別子（ISBN → ASIN → タイトルハッシュ の優先順）",
   "title": "書名",
   "author": "著者名",
   "genre": "大ジャンル",
   "subgenre": "サブジャンル または null",
   "series": "シリーズ名 または null",
   "isbn": "ISBN または null",
+  "asin": "ASIN または null",
   "pages": 186,
   "versions": ["original", "kindle"],
   "version_files": {
@@ -196,7 +206,8 @@ data/book-metadata.json（既存データ。なければ空オブジェクト）
 |---|------|
 | `"google_drive"` | Google Drive PDF のみ |
 | `"paper"` | 紙書籍のみ |
-| `["google_drive", "paper"]` | デジタル・紙の両方を所持 |
+| `"amazon_kindle"` | Amazon Kindle のみ |
+| `["amazon_kindle", "google_drive"]` 等 | 複数ソース（アルファベット順配列） |
 
 ### book-metadata.json のデータ構造（1レコード）
 

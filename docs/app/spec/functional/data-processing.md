@@ -1,8 +1,8 @@
 # データ処理機能仕様書
 
 **作成日**: 2026-02-28
-**更新日**: 2026-03-03
-**ステータス**: ドラフト v0.2
+**更新日**: 2026-03-27
+**ステータス**: ドラフト v0.3
 **対象フェーズ**: フェーズ1（静的SPA）
 
 > 本ドキュメントはデータ処理パイプライン（F-1〜F-4）の機能仕様を定義する。
@@ -16,24 +16,32 @@
 |----|-------|--------|
 | F-1 | Google Drive CSVインポート・メタデータパース | 必須 |
 | F-1b | オフライン書誌CSVインポート | 必須 |
+| F-1c | Kindle書籍インポート | 必須 |
 | F-2 | ジャンル推定（大ジャンル） | 必須 |
 | F-2b | サブジャンル推定 | 必須 |
 | F-3 | 重複排除・書籍統合 | 必須 |
 | F-4 | books.json 生成 | 必須 |
 
-データ処理はビルド前工程（`node scripts/process.js`）として実行する。SPA の実行時には処理済みの `data/books.json` を読み込む。
+データ処理はビルド前工程として実行する。SPA の実行時には処理済みの `data/books.json` を読み込む。
+
+Kindle書籍については、`process.js` の前段として `scripts/parse-kindle-list.js`（前処理スクリプト）を手動実行し、`data/kindle-books.json` を生成しておく必要がある。
 
 ```
-data/booklist.csv              data/offline_bibliography_list.csv
-    │                                  │
-    ▼ F-1: CSVインポート・             ▼ F-1b: オフラインCSVインポート
-    │       メタデータパース            │
-    └──────────────────┬───────────────┘
-                       │ ファイルレコード結合
-                       ▼ F-2: ジャンル推定（大ジャンル）
-                       ▼ F-2b: サブジャンル推定
-                       ▼ F-3: 重複排除・書籍統合
-                       ▼ F-4: books.json 生成
+data/booklist.csv   data/offline_bibliography_list.csv   data/kindle-list.csv
+    │                          │                                  │
+    │                          │                    node scripts/parse-kindle-list.js
+    │                          │                         ├─ 書籍絞り込み（F-1c前処理）
+    │                          │                         ├─ 複数巻統合（F-1c前処理）
+    │                          │                         └─ data/kindle-books.json
+    │                          │                                  │
+    ▼ F-1: CSVインポート・      ▼ F-1b: オフライン               ▼ F-1c: Kindle
+    │       メタデータパース     │        CSVインポート             │        書籍インポート
+    └──────────────────────────┴──────────────────────────────────┘
+                                       │ レコード結合
+                                       ▼ F-2: ジャンル推定（大ジャンル）
+                                       ▼ F-2b: サブジャンル推定
+                                       ▼ F-3: 重複排除・書籍統合
+                                       ▼ F-4: books.json 生成
 ```
 
 ---
@@ -237,6 +245,93 @@ F-1 の著者名抽出後、以下の順で著者名の補完・正規化を行�
 
 ---
 
+## F-1c: Kindle書籍インポート
+
+### 概要
+
+前処理スクリプト（`scripts/parse-kindle-list.js`）が生成した `data/kindle-books.json` を読み込み、F-1・F-1b と結合できる形式のレコードに変換する。`kindle-books.json` が存在しない場合はスキップし、エラーにしない。
+
+### 前提: 前処理スクリプト（`scripts/parse-kindle-list.js`）
+
+`process.js` の実行前に手動で実行する独立スクリプト。Amazon「デジタル注文履歴」CSV（`data/kindle-list.csv`）を入力とし、以下の処理を行って `data/kindle-books.json` を出力する。
+
+#### 前処理 Step 1: ASIN重複排除・基本フィルタ
+
+- `Order Status === "SUCCESS"` の行のみ対象とする
+- 同一ASIN が複数行（Tax / Price Amount コンポーネント）に出現するため、ASINで重複排除して1件にする
+
+#### 前処理 Step 2: 書籍絞り込み
+
+| 除外条件 | 判定方法 |
+|---------|---------|
+| 映画・動画 | タイトルに `[ビデオ]` または `[Video]` を含む |
+| 雑誌 | タイトルに `[雑誌]` を含む |
+| 無料・試し読み版 | タイトルに `無料`、`試し読み`、`お試し` のいずれかを含む |
+
+除外されたレコードは `data/kindle-excluded.csv`（ASIN・タイトル・除外理由）に出力する。
+
+#### 前処理 Step 3: 複数巻統合
+
+同一作品の上下巻・複数巻を1件に統合する。タイトルから下記の巻番号パターンを除去し、空白を正規化したものをグループキーとする。
+
+| 優先 | 除去パターン | 例 |
+|------|------------|-----|
+| 1 | `（上）` `（下）` `（中）` | `三体Ⅱ　黒暗森林（上）` |
+| 2 | 末尾の全角スペース + `上` `下` `中` | `三体Ⅲ　死神永生　上` |
+| 3 | `（一）`〜`（十...）`（漢数字） | `太平記（三）` |
+| 4 | `（１）`〜`（n）`（全角アラビア数字） | `宇宙兄弟（２５）` |
+| 5 | `(1)`〜`(n)`（半角数字括弧） | `罠ガール(7)` |
+| 6 | 末尾の半角スペース + アラビア数字 | `弱虫ペダル 16` |
+| 7 | ローマ数字サフィックス（`I`〜`XV` 等、末尾のみ） | `ローマ人の物語 XIV` |
+
+統合されたグループは `data/kindle-merged.csv`（統合後タイトル・代表ASIN・統合前一覧）に出力する。
+
+#### 前処理出力（`data/kindle-books.json`）
+
+```json
+[
+  { "title": "三体Ⅱ　黒暗森林", "asin": "B089M77R61", "asins": ["B089M77R61", "B089M7M21Q"] },
+  { "title": "宇宙兄弟", "asin": "B009SX8PAC", "asins": ["B009SX8PAC", "B00TGWD7NK"] }
+]
+```
+
+### F-1c 入力
+
+| 項目 | 仕様 |
+|------|------|
+| ファイルパス | `data/kindle-books.json` |
+| 文字コード | UTF-8 |
+| フィールド | `title`（書名）、`asin`（代表ASIN）、`asins`（全ASIN一覧） |
+
+### F-1c 処理仕様
+
+| 処理 | 内容 |
+|------|------|
+| ジャンル推定 | GENRE_FALLBACK_RULES によるタイトルキーワード推定（F-1 と共通） |
+| 著者名 | Amazon CSVに含まれないため空文字列固定 |
+| source | `"amazon_kindle"` 固定 |
+
+> **著者情報について**: ASINをキーにした著者情報の自動取得は現時点では対象外（Amazon Product Advertising API は申請必要、既存の openBD/Google Books API は ISBN ベース）。将来的な `enrich.js` 拡張の検討課題とする。
+
+### F-1c 出力（1レコードあたり）
+
+| フィールド | 内容 |
+|-----------|------|
+| `title` | 書名（複数巻統合済み） |
+| `author` | `""` 固定 |
+| `isbn` | `null` |
+| `asin` | 代表ASIN |
+| `pages` | `null` |
+| `series` | `null` |
+| `version` | `null` |
+| `folder_path` | `null` |
+| `file_url` | `null` |
+| `file_id` | `null` |
+| `file_size_mb` | `null` |
+| `source` | `"amazon_kindle"` |
+
+---
+
 ## F-2: ジャンル推定
 
 ### 概要
@@ -329,7 +424,7 @@ F-2 で割り当てた大ジャンルをもとに、タイトル・著者名・�
 
 ### 概要
 
-F-1（Google Drive）と F-1b（オフライン）のレコードを結合し、同一書籍の複数バージョン（オリジナル・iPad3・Kindle）および同一書籍のデジタル・紙両方の所持を1件の書籍レコードに統合する。
+F-1（Google Drive）・F-1b（オフライン）・F-1c（Kindle）のレコードを結合し、同一書籍の複数バージョン（オリジナル・iPad3・Kindle）および同一書籍の複数ソース所持を1件の書籍レコードに統合する。
 
 ### 統合キー
 
@@ -352,11 +447,17 @@ F-1（Google Drive）と F-1b（オフライン）のレコードを結合し、
 
 ### `source` 集約ルール
 
+ソース値は `"amazon_kindle"`、`"google_drive"`、`"paper"` の3種類。1種のみの場合は文字列、複数の場合はアルファベット順の配列とする。
+
 | 統合されたレコードの source | 出力値 |
 |--------------------------|--------|
 | `google_drive` のみ | `"google_drive"` |
 | `paper` のみ | `"paper"` |
+| `amazon_kindle` のみ | `"amazon_kindle"` |
 | `google_drive` と `paper` 両方 | `["google_drive", "paper"]` |
+| `amazon_kindle` と `google_drive` 両方 | `["amazon_kindle", "google_drive"]` |
+| `amazon_kindle` と `paper` 両方 | `["amazon_kindle", "paper"]` |
+| 全ソース | `["amazon_kindle", "google_drive", "paper"]` |
 
 ### ジャンル優先度テーブル（重複排除時）
 
@@ -391,13 +492,14 @@ F-1（Google Drive）と F-1b（オフライン）のレコードを結合し、
 
 ```json
 {
-  "id": "一意識別子（ISBN または タイトルハッシュ）",
+  "id": "一意識別子（ISBN → ASIN → タイトルハッシュ の優先順）",
   "title": "書名",
   "author": "著者名",
   "genre": "大ジャンル",
   "subgenre": "サブジャンル または null",
   "series": "シリーズ名 または null",
   "isbn": "ISBN または null",
+  "asin": "ASIN または null",
   "pages": 186,
   "versions": ["original", "kindle"],
   "version_files": {
@@ -408,23 +510,32 @@ F-1（Google Drive）と F-1b（オフライン）のレコードを結合し、
 }
 ```
 
-紙書籍のみのレコード例:
+Kindle書籍のレコード例:
 
 ```json
 {
-  "id": "title_a1b2c3d4",
-  "title": "プログラマの数学",
-  "author": "結城浩",
-  "genre": "コンピュータ",
+  "id": "B07TS9XTSD",
+  "title": "三体",
+  "author": "",
+  "genre": "未分類",
   "subgenre": null,
   "series": null,
   "isbn": null,
+  "asin": "B07TS9XTSD",
   "pages": null,
   "versions": [],
   "version_files": {},
-  "source": "paper"
+  "source": "amazon_kindle"
 }
 ```
+
+`id` の決定ロジック（優先順）:
+
+| 優先 | 条件 | id の値 |
+|------|------|---------|
+| 1 | ISBN あり | ISBN 値 |
+| 2 | ISBN なし、ASIN あり | ASIN 値 |
+| 3 | いずれもなし | `title_XXXXXXXX`（タイトルの djb2 ハッシュ） |
 
 `source` フィールドの値:
 
@@ -432,18 +543,21 @@ F-1（Google Drive）と F-1b（オフライン）のレコードを結合し、
 |---|------|
 | `"google_drive"` | Google Drive PDF のみ |
 | `"paper"` | 紙書籍のみ |
-| `["google_drive", "paper"]` | デジタル・紙の両方を所持 |
+| `"amazon_kindle"` | Amazon Kindle のみ |
+| `["amazon_kindle", "google_drive"]` 等 | 複数ソース（アルファベット順配列） |
 
 ---
 
-## 期待データ量（2026-03-03 時点）
+## 期待データ量（2026-03-27 時点）
 
 | 項目 | 値 |
 |------|---|
 | Google Drive CSV レコード数 | 約 1,900 |
-| PDF ファイル数 | 1,889 |
-| オフライン書誌 CSV レコード数 | 62 |
-| 重複排除後のユニーク書籍数 | 870件程度（実装後に確定） |
-| ユニーク著者数 | 実装後に確定 |
+| PDF ファイル数 | 1,886 |
+| オフライン書誌 CSV レコード数 | 63 |
+| Kindle 注文履歴 CSV ユニーク ASIN 数 | 約 1,032 |
+| Kindle 前処理後（絞り込み・統合後）書籍数 | 実行後に確定 |
+| 重複排除後のユニーク書籍数 | 実行後に確定 |
+| ユニーク著者数 | 実行後に確定 |
 | ジャンル数（大ジャンル） | 11（未分類含む） |
 | サブジャンル数 | 実装フェーズで確定 |
