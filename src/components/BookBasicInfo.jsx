@@ -49,6 +49,31 @@ export default function BookBasicInfo({ book, onSelectAuthor }) {
         <dt className="text-xs text-gray-400 font-medium uppercase tracking-wide">ページ数</dt>
         <dd className="text-gray-700">{book.pages != null ? `${book.pages}ページ` : '情報なし'}</dd>
       </div>
+
+      {(() => {
+        const sources = Array.isArray(book.source) ? book.source : (book.source ? [book.source] : []);
+        if (!sources.includes('amazon_kindle')) return null;
+        return (
+          <div>
+            <dt className="text-xs text-gray-400 font-medium uppercase tracking-wide">Kindle</dt>
+            <dd>
+              {book.asin
+                ? (
+                  <a
+                    href={`https://www.amazon.co.jp/dp/${book.asin}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline text-sm"
+                  >
+                    Amazonで開く
+                  </a>
+                )
+                : <span className="text-gray-700 text-sm">Kindleで所持</span>
+              }
+            </dd>
+          </div>
+        );
+      })()}
     </dl>
   );
 }

@@ -8,6 +8,7 @@ const EXCLUDED_NAMES = ['self_check', '20120330_1246_33_0706', 'to_1733_912_003_
 const AUTHOR_ALIASES_PATH = path.join(__dirname, '..', 'data', 'author-aliases.json');
 const BOOK_CORRECTIONS_PATH = path.join(__dirname, '..', 'data', 'book-corrections.json');
 const OFFLINE_CSV_PATH = path.join(__dirname, '..', 'data', 'offline_bibliography_list.csv');
+const KINDLE_BOOKS_PATH = path.join(__dirname, '..', 'data', 'kindle-books.json');
 
 const OFFLINE_GENRE_MAP = {
   'コンピュータ・IT技術': 'コンピュータ',
@@ -343,6 +344,36 @@ function resolveAuthorAlias(author, aliases) {
 }
 
 /**
+ * F-1c: Import Kindle books from kindle-books.json.
+ * Returns file-like records with source: "amazon_kindle".
+ * If the file does not exist, returns an empty array.
+ */
+function parseKindleBooks(kindleBooksPath) {
+  if (!fs.existsSync(kindleBooksPath)) return [];
+  const records = JSON.parse(fs.readFileSync(kindleBooksPath, 'utf-8'));
+  return records.map(entry => {
+    const title = (entry.title || '').trim();
+    const asin = (entry.asin || null);
+    const genre = estimateGenre('', title, '', null);
+    return {
+      title,
+      author: '',
+      isbn: null,
+      asin,
+      pages: null,
+      series: null,
+      version: null,
+      folder_path: null,
+      file_url: null,
+      file_id: null,
+      file_size_mb: null,
+      source: 'amazon_kindle',
+      genre,
+    };
+  });
+}
+
+/**
  * Parse the offline bibliography CSV and return file-like records with source: "paper".
  * Applies genre mapping, author normalization, and alias resolution.
  */
@@ -440,18 +471,29 @@ function deduplicateBooks(files) {
       }
     }
 
-    const sourceSet = new Set(group.map(f => f.source).filter(s => s === 'google_drive' || s === 'paper'));
-    const source = sourceSet.has('google_drive') && sourceSet.has('paper')
-      ? ['google_drive', 'paper']
-      : sourceSet.has('paper') ? 'paper' : 'google_drive';
+    const sourceValues = ['amazon_kindle', 'google_drive', 'paper'];
+    const sourceSet = new Set(group.map(f => f.source).filter(s => sourceValues.includes(s)));
+    const presentSources = sourceValues.filter(s => sourceSet.has(s));
+    const source = presentSources.length === 0 ? 'google_drive'
+      : presentSources.length === 1 ? presentSources[0]
+      : presentSources;
+
+    const asin = group.find(f => f.asin != null)?.asin ?? null;
+
+    // When the representative record is amazon_kindle (author is empty),
+    // prefer author from another source in the group if available.
+    const author = (original.source === 'amazon_kindle' && !original.author)
+      ? (group.find(f => f.source !== 'amazon_kindle' && f.author)?.author ?? original.author)
+      : original.author;
 
     books.push({
       title: original.title,
-      author: original.author,
+      author,
       genre: bestGenre,
       subgenre,
       series: original.series,
       isbn,
+      asin,
       pages,
       versions: group.map(f => f.version).filter(v => v !== null),
       version_files,
@@ -464,10 +506,11 @@ function deduplicateBooks(files) {
 
 /**
  * Generate a stable unique ID for a book.
- * Uses ISBN if available; otherwise a djb2 hash of the title.
+ * Priority: ISBN → ASIN → djb2 hash of title.
  */
 function generateId(book) {
   if (book.isbn) return book.isbn;
+  if (book.asin) return book.asin;
   let hash = 5381;
   for (let i = 0; i < book.title.length; i++) {
     hash = (((hash << 5) + hash) + book.title.charCodeAt(i)) >>> 0;
@@ -521,7 +564,9 @@ function main() {
     ? parseOfflineCsv(fs.readFileSync(OFFLINE_CSV_PATH, 'utf-8'), authorAliases)
     : [];
 
-  const files = [...driveFiles, ...offlineFiles];
+  const kindleFiles = parseKindleBooks(KINDLE_BOOKS_PATH);
+
+  const files = [...driveFiles, ...offlineFiles, ...kindleFiles];
 
   const books = deduplicateBooks(files);
 
@@ -535,6 +580,7 @@ function main() {
     subgenre: book.subgenre,
     series: book.series,
     isbn: book.isbn,
+    asin: book.asin ?? null,
     pages: book.pages,
     versions: book.versions,
     version_files: book.version_files,
@@ -552,11 +598,13 @@ function main() {
   console.log(`  除外レコード数: ${rows.length - filtered.length} (非PDF: ${nonPdfCount}, 管理用ファイル: ${managementCount})`);
   console.log(`  パース済みファイル数: ${filtered.length}`);
   console.log(`  入力レコード数（オフライン書誌）: ${offlineFiles.length}`);
-  console.log(`  統合後書籍数: ${output.length}（うち紙書籍のみ: ${paperCount - bothCount}、デジタル・紙両方: ${bothCount}）`);
+  console.log(`  入力レコード数（Kindle）: ${kindleFiles.length}`);
+  const kindleCount = output.filter(b => b.source === 'amazon_kindle' || (Array.isArray(b.source) && b.source.includes('amazon_kindle'))).length;
+  console.log(`  統合後書籍数: ${output.length}（うち紙書籍のみ: ${paperCount - bothCount}、デジタル・紙両方: ${bothCount}、Kindle含む: ${kindleCount}）`);
   console.log(`  出力ファイル: data/books.json`);
 }
 
-module.exports = { parseCSV, filterRecords, parseFilename, extractAuthorFromTitle, applyBookCorrections, normalizeAuthor, resolveAuthorAlias, parseOfflineCsv, estimateGenre, estimateSubgenre, deduplicateBooks, generateId, OFFLINE_GENRE_MAP };
+module.exports = { parseCSV, filterRecords, parseFilename, extractAuthorFromTitle, applyBookCorrections, normalizeAuthor, resolveAuthorAlias, parseOfflineCsv, parseKindleBooks, estimateGenre, estimateSubgenre, deduplicateBooks, generateId, OFFLINE_GENRE_MAP };
 
 if (require.main === module) {
   main();
