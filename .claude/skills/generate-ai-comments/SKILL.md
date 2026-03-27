@@ -7,6 +7,7 @@ Run the AI recommendation comment generation script and commit the results.
 - `GEMINI_API_KEY` is stored in 1Password and resolved via `.env` (`op://API/gemini_booklist/...`)
 - `data/books.json` must exist (run `node scripts/process.js` if missing)
 - `data/book-metadata.json` should exist for best results (run `node scripts/enrich.js` if missing)
+- `data/book-gemini-enrichment.json` should exist for best author/pages coverage (run `node scripts/enrich-gemini.js` if missing; requires `GEMINI_API_KEY`)
 
 ## Procedure
 

@@ -134,6 +134,10 @@ async function main() {
       }
       console.log(`エラー: ${msg}`);
     }
+
+    if (i < targets.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
   }
 
   console.log(`保存済み: ${saved}件 → ${ENRICHMENT_PATH}`);
