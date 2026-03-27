@@ -14,6 +14,7 @@ const {
   normalizeAuthor,
   resolveAuthorAlias,
   parseOfflineCsv,
+  parseKindleBooks,
   estimateGenre,
   estimateSubgenre,
   deduplicateBooks,
@@ -580,6 +581,53 @@ describe('deduplicateBooks', () => {
     const books = deduplicateBooks(files);
     assert.equal(books[0].source, 'google_drive');
   });
+
+  test('source is amazon_kindle for Kindle-only book', () => {
+    const files = [makeFile({ version: null, source: 'amazon_kindle', asin: 'B08YH9CBGM' })];
+    const books = deduplicateBooks(files);
+    assert.equal(books[0].source, 'amazon_kindle');
+  });
+
+  test('source is array when amazon_kindle and google_drive share same title', () => {
+    const files = [
+      makeFile({ isbn: null, title: '三体', version: 'original', source: 'google_drive', asin: null }),
+      makeFile({ isbn: null, title: '三体', version: null, source: 'amazon_kindle', asin: 'B08YH9CBGM' }),
+    ];
+    const books = deduplicateBooks(files);
+    assert.equal(books.length, 1);
+    assert.deepEqual(books[0].source, ['amazon_kindle', 'google_drive']);
+  });
+
+  test('source is array when amazon_kindle and paper share same title', () => {
+    const files = [
+      makeFile({ isbn: null, title: '三体', version: null, source: 'amazon_kindle', asin: 'B08YH9CBGM' }),
+      makeFile({ isbn: null, title: '三体', version: null, source: 'paper', asin: null }),
+    ];
+    const books = deduplicateBooks(files);
+    assert.equal(books.length, 1);
+    assert.deepEqual(books[0].source, ['amazon_kindle', 'paper']);
+  });
+
+  test('asin is set from kindle record', () => {
+    const files = [makeFile({ version: null, source: 'amazon_kindle', asin: 'B08YH9CBGM' })];
+    const books = deduplicateBooks(files);
+    assert.equal(books[0].asin, 'B08YH9CBGM');
+  });
+
+  test('asin is null when no kindle record', () => {
+    const files = [makeFile({ version: 'original', source: 'google_drive', asin: null })];
+    const books = deduplicateBooks(files);
+    assert.equal(books[0].asin, null);
+  });
+
+  test('prefers non-kindle author when merging amazon_kindle with google_drive', () => {
+    const files = [
+      makeFile({ isbn: null, title: '三体', version: null, source: 'amazon_kindle', author: '', asin: 'B08YH9CBGM' }),
+      makeFile({ isbn: null, title: '三体', version: 'original', source: 'google_drive', author: '劉慈欣', asin: null }),
+    ];
+    const books = deduplicateBooks(files);
+    assert.equal(books[0].author, '劉慈欣');
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -678,18 +726,28 @@ describe('parseOfflineCsv', () => {
 
 describe('generateId', () => {
   test('uses isbn as id when available', () => {
-    const book = { isbn: '9784101020112', title: '本' };
+    const book = { isbn: '9784101020112', asin: null, title: '本' };
     assert.equal(generateId(book), '9784101020112');
   });
 
-  test('generates title_XXXX id when isbn is null', () => {
-    const book = { isbn: null, title: 'テストタイトル' };
+  test('uses asin as id when isbn is null', () => {
+    const book = { isbn: null, asin: 'B08YH9CBGM', title: '三体' };
+    assert.equal(generateId(book), 'B08YH9CBGM');
+  });
+
+  test('isbn takes priority over asin', () => {
+    const book = { isbn: '9784101020112', asin: 'B08YH9CBGM', title: '本' };
+    assert.equal(generateId(book), '9784101020112');
+  });
+
+  test('generates title_XXXX id when isbn and asin are null', () => {
+    const book = { isbn: null, asin: null, title: 'テストタイトル' };
     const id = generateId(book);
     assert.ok(id.startsWith('title_'), `Expected title_ prefix, got ${id}`);
   });
 
   test('generates same id for same title (stable)', () => {
-    const book = { isbn: null, title: 'テストタイトル' };
+    const book = { isbn: null, asin: null, title: 'テストタイトル' };
     assert.equal(generateId(book), generateId(book));
   });
 });
@@ -718,6 +776,77 @@ describe('parseCSV', () => {
     const rows = parseCSV(csv);
     assert.equal(rows[0].a, 'line1\nline2');
     assert.equal(rows[0].b, '99');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// parseKindleBooks
+// ---------------------------------------------------------------------------
+
+describe('parseKindleBooks', () => {
+  const os = require('os');
+
+  function writeTempJson(data) {
+    const tmpFile = path.join(os.tmpdir(), `kindle-books-test-${Date.now()}.json`);
+    fs.writeFileSync(tmpFile, JSON.stringify(data), 'utf-8');
+    return tmpFile;
+  }
+
+  test('returns empty array when file does not exist', () => {
+    const result = parseKindleBooks('/nonexistent/path/kindle-books.json');
+    assert.deepEqual(result, []);
+  });
+
+  test('returns records with source amazon_kindle', () => {
+    const tmpFile = writeTempJson([{ title: '三体', asin: 'B08YH9CBGM', asins: ['B08YH9CBGM'] }]);
+    const result = parseKindleBooks(tmpFile);
+    fs.unlinkSync(tmpFile);
+    assert.equal(result.length, 1);
+    assert.equal(result[0].source, 'amazon_kindle');
+  });
+
+  test('sets asin from entry', () => {
+    const tmpFile = writeTempJson([{ title: '三体', asin: 'B08YH9CBGM', asins: ['B08YH9CBGM'] }]);
+    const result = parseKindleBooks(tmpFile);
+    fs.unlinkSync(tmpFile);
+    assert.equal(result[0].asin, 'B08YH9CBGM');
+  });
+
+  test('author is empty string', () => {
+    const tmpFile = writeTempJson([{ title: '三体', asin: 'B08YH9CBGM', asins: ['B08YH9CBGM'] }]);
+    const result = parseKindleBooks(tmpFile);
+    fs.unlinkSync(tmpFile);
+    assert.equal(result[0].author, '');
+  });
+
+  test('isbn, pages, series, version are null', () => {
+    const tmpFile = writeTempJson([{ title: '三体', asin: 'B08YH9CBGM', asins: ['B08YH9CBGM'] }]);
+    const result = parseKindleBooks(tmpFile);
+    fs.unlinkSync(tmpFile);
+    assert.equal(result[0].isbn, null);
+    assert.equal(result[0].pages, null);
+    assert.equal(result[0].series, null);
+    assert.equal(result[0].version, null);
+  });
+
+  test('handles empty array', () => {
+    const tmpFile = writeTempJson([]);
+    const result = parseKindleBooks(tmpFile);
+    fs.unlinkSync(tmpFile);
+    assert.deepEqual(result, []);
+  });
+
+  test('returns multiple records', () => {
+    const data = [
+      { title: '三体', asin: 'B08YH9CBGM', asins: ['B08YH9CBGM'] },
+      { title: '宇宙兄弟', asin: 'B009SX8PAC', asins: ['B009SX8PAC', 'B00TGWD7NK'] },
+    ];
+    const tmpFile = writeTempJson(data);
+    const result = parseKindleBooks(tmpFile);
+    fs.unlinkSync(tmpFile);
+    assert.equal(result.length, 2);
+    assert.equal(result[1].title, '宇宙兄弟');
+    assert.equal(result[1].asin, 'B009SX8PAC');
   });
 });
 
@@ -795,8 +924,9 @@ describe('Integration', () => {
         assert.ok(typeof book.version_files[v].file_url === 'string', `version_files[${v}].file_url must be a string`);
         assert.ok(typeof book.version_files[v].file_id === 'string', `version_files[${v}].file_id must be a string`);
       }
-      const validSource = book.source === 'google_drive' || book.source === 'paper' ||
-        (Array.isArray(book.source) && book.source.includes('google_drive') && book.source.includes('paper'));
+      const validSingleSources = ['google_drive', 'paper', 'amazon_kindle'];
+      const validSource = validSingleSources.includes(book.source) ||
+        (Array.isArray(book.source) && book.source.every(s => validSingleSources.includes(s)));
       assert.ok(validSource, `source must be a valid value, got ${JSON.stringify(book.source)}`);
     }
   });

@@ -12,6 +12,11 @@ function SourceBadges({ source }) {
           紙
         </span>
       )}
+      {sources.includes('amazon_kindle') && (
+        <span className="inline-block bg-orange-50 text-orange-700 text-xs px-1.5 py-0.5 rounded">
+          Kindle
+        </span>
+      )}
     </div>
   );
 }
