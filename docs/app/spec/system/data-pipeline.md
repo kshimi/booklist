@@ -1,8 +1,8 @@
 # データパイプライン設計
 
 **作成日**: 2026-02-28
-**更新日**: 2026-03-26
-**ステータス**: ドラフト v0.3
+**更新日**: 2026-03-27
+**ステータス**: ドラフト v0.4
 **対象フェーズ**: フェーズ1（静的SPA）
 
 ---
@@ -26,7 +26,9 @@ data/booklist.csv              data/offline_bibliography_list.csv
                        │ レコード結合
                        ├─ ステップ3: ジャンル推定（フォルダパスベース）
                        ├─ ステップ4: 重複排除・書籍統合
-                       └─ ステップ5: books.json 出力
+                       ├─ ステップ5: Gemini書誌情報充足の適用
+                       │  （data/book-gemini-enrichment.json が存在する場合のみ）
+                       └─ ステップ6: books.json 出力
 ```
 
 ---
@@ -305,7 +307,32 @@ const source = sources.has('google_drive') && sources.has('paper')
 
 ---
 
-### ステップ5: books.json 出力
+### ステップ5: Gemini書誌情報充足の適用
+
+`data/book-gemini-enrichment.json` が存在する場合、重複排除後の書籍リストに対してその内容を適用する。
+
+#### 適用ルール
+
+```javascript
+const enrichment = loadJson(GEMINI_ENRICHMENT_PATH, {});
+for (const book of books) {
+  const e = enrichment[book.id];
+  if (!e) continue;
+  if (e.author && !book.author) book.author = e.author;
+  if (e.pages && !book.pages) book.pages = e.pages;
+}
+```
+
+| 条件 | 処理 |
+|------|------|
+| enrichment.json が存在しない | このステップをスキップし、エラーにしない |
+| 対象フィールドが既に設定されている（空文字列 `""` を含む） | Gemini 値で上書きしない |
+| 対象フィールドが未設定（`null` または `""` ）で Gemini 値が非 null | Gemini 値を適用する |
+| Gemini 値が `null` | 既存値をそのまま保持する |
+
+---
+
+### ステップ6: books.json 出力
 
 #### IDの生成
 
@@ -379,7 +406,105 @@ const source = sources.has('google_drive') && sources.has('paper')
 
 ---
 
-## 4. generate-ai-comments.js パイプライン（手動実行）
+## 4. enrich-gemini.js パイプライン（手動実行）
+
+> 機能要件: F-1d（Gemini書誌情報充足）
+> 設計ドキュメント: [`docs/app/design/032-gemini-bibliographic-enrichment.md`](../../design/032-gemini-bibliographic-enrichment.md)
+
+### 概要
+
+著者名・ページ数が未設定の書籍に対して Gemini API で情報を取得し、`data/book-gemini-enrichment.json` に保存する差分生成スクリプト。
+生成済みデータは `process.js` 実行時（ステップ5）に `books.json` へ反映される。
+
+### 実行方法
+
+```bash
+# 差分生成（デフォルト: 未充足の書籍のみ）
+node scripts/enrich-gemini.js
+
+# 全未設定書籍を再問い合わせ
+node scripts/enrich-gemini.js --all
+```
+
+**前提条件**:
+- `data/books.json` が存在すること
+- 環境変数 `GEMINI_API_KEY` が設定されていること
+
+### パイプライン
+
+```
+data/books.json
+data/book-gemini-enrichment.json（既存データ。なければ空オブジェクト）
+    │
+    ▼ ステップ1: 対象書籍の特定
+    │  ・デフォルト: author が空または pages が null の書籍のうち、
+    │    enrichment.json に未登録のもの
+    │  ・--all: 上記条件を満たす全書籍（既登録含む再問い合わせ）
+    │
+    ▼ ステップ2: Gemini API 呼び出し（1件ずつ）
+    │  ・タイトル・ASIN/ISBN をプロンプトに埋め込む
+    │  ・構造化 JSON レスポンスをパース（不正JSONの場合は当該書籍をスキップ）
+    │  ・APIキーは環境変数 GEMINI_API_KEY から取得
+    │  ・429 (quota exceeded) を受信した場合は即座に中断
+    │
+    ▼ ステップ3: book-gemini-enrichment.json への保存
+       ・1件取得するたびに都度ファイルに書き込む（中断時のデータ損失防止）
+       ・既存データとマージして保存
+```
+
+### プロンプトテンプレート
+
+```
+以下の書籍の著者名とページ数を調べてください。
+
+タイトル: {title}
+{ASIN: {asin} | ISBN: {isbn}（いずれかが存在する場合のみ）}
+
+以下のJSON形式で回答してください（不明な場合は null）:
+{"author": "著者名（日本語表記）", "pages": ページ数の数値}
+
+JSONのみを出力してください（前置きや説明は不要です）。
+```
+
+### 出力仕様
+
+| 項目 | 仕様 |
+|------|------|
+| ファイルパス | `data/book-gemini-enrichment.json` |
+| 文字コード | UTF-8 |
+| フォーマット | `JSON.stringify(data, null, 2)` |
+| キー | `books.json` の `id` フィールド |
+
+#### `data/book-gemini-enrichment.json` の構造
+
+```json
+{
+  "B013DZ3RM6": {
+    "author": "ゆうきゆう",
+    "pages": 192,
+    "enrichedAt": "2026-03-27",
+    "model": "gemini-2.5-flash-lite"
+  },
+  "B00I8PIBEG": {
+    "author": "ゆうきゆう",
+    "pages": null,
+    "enrichedAt": "2026-03-27",
+    "model": "gemini-2.5-flash-lite"
+  }
+}
+```
+
+### エラーハンドリング
+
+| エラー | 処理 |
+|--------|------|
+| 429 (quota exceeded) | 即座に処理中断。直前まで取得した結果を保存して終了 |
+| 不正JSONレスポンス | エラーログを出力してスキップ（当該書籍は未充足のまま） |
+| その他APIエラー | エラーログを出力してスキップ |
+
+---
+
+## 5. generate-ai-comments.js パイプライン（手動実行）
 
 > 機能要件: F-14（日替わりサジェスチョン）
 > API設計: [`docs/app/spec/system/api-integration.md`](api-integration.md) セクション9
@@ -478,7 +603,7 @@ npm install @google/generative-ai
 
 ---
 
-## 5. スクリプト実装メモ
+## 6. スクリプト実装メモ
 
 ### ファイル構成
 
@@ -486,6 +611,7 @@ npm install @google/generative-ai
 scripts/
 ├── process.js              # books.json 生成（外部ライブラリ不要）
 ├── enrich.js               # book-metadata.json 生成
+├── enrich-gemini.js        # book-gemini-enrichment.json 生成（@google/generative-ai 使用）
 └── generate-ai-comments.js # book-ai-comments.json 生成（@google/generative-ai 使用）
 ```
 
