@@ -1,6 +1,7 @@
 # 設計ドキュメント #031: Amazon Kindleコンテンツリスト統合
 
 **作成日**: 2026-03-27
+**更新日**: 2026-03-27
 **対象Issue**: #31
 **ステータス**: レビュー待ち
 
@@ -9,7 +10,7 @@
 ## 概要
 
 Amazon Kindleで購入済みの書籍を書籍ライブラリに追加する。
-既存の「紙書籍リスト（`offline_bibliography_list.csv`）」と同様のアプローチで、手動管理CSVファイル（`data/kindle_list.csv`）を新たな入力ソースとして追加し、`process.js` でのデータ処理に組み込む。
+Amazon公式の「デジタル注文履歴」からダウンロードしたCSVファイル（`data/kindle-list.csv`）を入力ソースとして追加し、`process.js` でのデータ処理に組み込む。
 
 Kindleコンテンツは「Google DriveにアップロードされたKindle版PDF（`version: "kindle"`）」とは別物であり、Amazon Kindle Store上で購入・管理されるデジタルコンテンツを指す。
 
@@ -19,24 +20,26 @@ Kindleコンテンツは「Google DriveにアップロードされたKindle版PD
 
 ### データ入力形式
 
-新規ファイル `data/kindle_list.csv` を手動作成・管理する。
+Amazonの「デジタル注文履歴」からダウンロードしたCSVファイルをそのまま `data/kindle-list.csv` として配置して使用する。
 
-| カラム | 必須 | 説明 |
-|--------|------|------|
-| ジャンル | 必須 | `offline_bibliography_list.csv` と共通の大ジャンル名 |
-| 書名 | 必須 | 書籍タイトル |
-| 著者名 | 必須 | 著者名 |
-| 出版社 | 任意 | 出版社名 |
-| ASIN | 任意 | AmazonのASIN番号（10文字英数字）。Amazon商品ページへのリンク生成に使用 |
+**データ取得手順:**
+1. amazon.co.jp → アカウントサービス → 注文履歴 → 「デジタル注文履歴」
+2. CSV形式でダウンロードし、`data/kindle-list.csv` として保存
 
-**サンプル行:**
-```
-ジャンル,書名,著者名,出版社,ASIN
-コンピュータ・IT技術,Clean Code,Robert C. Martin,ASCII Media Works,B00A6P3U3K
-フィクション（日本）,三体,劉慈欣,早川書房,B08YH9CBGM
-```
+**CSVの主要カラム（Amazonが出力する形式）:**
 
-> **データ取得方法**: Amazonの「コンテンツと端末の管理」ページで確認できる購入済みコンテンツリストを参照し、手動でCSVに記入する。
+| カラム名 | 説明 |
+|---------|------|
+| `ASIN` | AmazonのASIN番号（10文字英数字）。書籍識別子に使用 |
+| `Product Name` | 書籍タイトル（シリーズ巻番号・副題を含む） |
+| `Publisher` | 出版社名（`"Not Applicable"` の場合あり） |
+| `Order Status` | 注文ステータス。`SUCCESS` のみ処理対象とする |
+| `Order Date` | 購入日 |
+
+**制約:**
+- 著者名はCSVに含まれない。著者フィールドは空文字列として扱う
+- 1件の購入が `Component Type`（Tax / Price Amount 等）ごとに複数行に分かれるため、ASINで重複排除が必要
+- `Product Name` に `[雑誌]` 等のサフィックスが付く場合がある
 
 ### 新規ソース値
 
@@ -66,9 +69,9 @@ Kindleコンテンツは「Google DriveにアップロードされたKindle版PD
 {
   "id": "B08YH9CBGM",
   "title": "三体",
-  "author": "劉慈欣",
-  "genre": "フィクション（日本）",
-  "subgenre": "SF",
+  "author": "",
+  "genre": "未分類",
+  "subgenre": null,
   "series": null,
   "isbn": null,
   "asin": "B08YH9CBGM",
@@ -79,6 +82,8 @@ Kindleコンテンツは「Google DriveにアップロードされたKindle版PD
 }
 ```
 
+> 著者名はAmazon CSVに含まれないため空文字列となる。ジャンルはタイトルキーワードで推定する。
+
 **IDの決定ロジック（優先順）:**
 
 1. ISBNあり → ISBNをIDに使用（既存ロジック、書籍統合可能）
@@ -87,21 +92,27 @@ Kindleコンテンツは「Google DriveにアップロードされたKindle版PD
 
 **重複排除・書籍統合ロジックの拡張（F-3）:**
 
+統合キーは既存ロジック（ISBN → タイトル）を踏襲する。ASINは統合キーではなく付加フィールドとして扱う。
+
 | 統合キー | 条件 |
 |---------|------|
 | ISBN | ISBNが存在する場合（既存） |
-| ASIN | ISBNなし、ASINが存在する場合（新規） |
-| タイトル | ISBN・ASINともになし（既存フォールバック） |
+| タイトル | ISBNなし（既存フォールバック） |
+
+> Kindle書籍にISBNはないため、既存のGoogle Drive / 紙書籍と同タイトルであればタイトルキーで統合される。
 
 ### process.js への変更
 
 `F-1b`（オフラインCSVインポート）に相当する処理 `F-1c` を追加する。
 
 ```
-F-1c: Kindle CSVインポート
-  ・data/kindle_list.csv を読み込む
-  ・著者名正規化・エイリアス解決を適用
-  ・ジャンル推定（大ジャンルはCSVから取得、サブジャンルはキーワード推定）
+F-1c: Amazon Kindle CSVインポート
+  ・data/kindle-list.csv を読み込む（存在しない場合はスキップ）
+  ・Order Status === "SUCCESS" の行のみ対象とする
+  ・ASIN単位で重複排除する（同一ASINが複数行に出現するため）
+  ・Product Name から末尾の "[...]" サフィックス（[雑誌] 等）を除去してタイトルとする
+  ・著者名は空文字列とする
+  ・ジャンルはタイトルキーワードで推定する（GENRE_FALLBACK_RULES を使用）
   ・source = "amazon_kindle" を付与
   ・ASIN フィールドを設定
 ```
@@ -122,8 +133,8 @@ F-1c: Kindle CSVインポート
 
 | 対象 | 変更内容 | 規模 |
 |------|---------|------|
-| `data/kindle_list.csv` | 新規作成（入力データ） | 新規 |
-| `scripts/process.js` | F-1c追加、F-3重複排除ロジック拡張（ASIN対応） | 小〜中 |
+| `data/kindle-list.csv` | Amazon CSVをそのまま配置（入力データ） | 新規 |
+| `scripts/process.js` | F-1c追加（`parseKindleCsv`）、`asin` フィールド対応 | 小〜中 |
 | `data/books.json` | `asin` フィールド追加、`source` 値の拡張 | スキーマ変更 |
 | `src/components/BookCard` | sourceバッジ表示に `"amazon_kindle"` 追加 | 小 |
 | `src/components/BookDetail` | Kindleリンク・「Kindleで所持」表示追加 | 小 |
@@ -141,11 +152,12 @@ F-1c: Kindle CSVインポート
 
 | テストケース | 確認内容 |
 |------------|---------|
-| Kindle専用書籍（ISBNなし・ASINあり） | ASINがIDとして設定される |
-| Kindle専用書籍（ISBNなし・ASINなし） | タイトルハッシュがIDとして設定される |
-| Kindle書籍とGoogle Drive PDFの重複統合（ISBN一致） | sourceが `["amazon_kindle", "google_drive"]` に統合される |
-| Kindle書籍と紙書籍の重複統合（ISBN一致） | sourceが `["amazon_kindle", "paper"]` に統合される |
+| 同一ASINが複数行の場合 | 1件に重複排除される |
+| Order Status が SUCCESS 以外の行 | 除外される |
+| `Product Name` に `[雑誌]` サフィックスあり | 除去されてタイトルに設定される |
+| Kindle専用書籍（ASINあり・ISBNなし） | ASINがIDとして設定される |
+| Kindle書籍とGoogle Drive PDFのタイトル一致 | sourceが `["amazon_kindle", "google_drive"]` に統合される |
+| Kindle書籍と紙書籍のタイトル一致 | sourceが `["amazon_kindle", "paper"]` に統合される |
 | source="amazon_kindle" のカードに「Kindle」バッジ表示 | UIでバッジが正しく表示される |
-| ASINありの書籍詳細でAmazonリンク表示 | 正しいURLが表示される |
-| ASINなしの書籍詳細で「Kindleで所持」表示 | テキスト表示される |
+| ASINありの書籍詳細でAmazonリンク表示 | `https://www.amazon.co.jp/dp/{ASIN}` が表示される |
 | process.js 実行後の books.json レコード数確認 | Kindleリスト分が追加されている |
