@@ -2,7 +2,7 @@
 
 **作成日**: 2026-02-28
 **更新日**: 2026-03-27
-**ステータス**: ドラフト v0.4
+**ステータス**: ドラフト v0.3
 **対象フェーズ**: フェーズ1（静的SPA）
 
 > 本ドキュメントはデータ処理パイプライン（F-1〜F-4）の機能仕様を定義する。
@@ -17,7 +17,6 @@
 | F-1 | Google Drive CSVインポート・メタデータパース | 必須 |
 | F-1b | オフライン書誌CSVインポート | 必須 |
 | F-1c | Kindle書籍インポート | 必須 |
-| F-1d | Gemini書誌情報充足 | 任意 |
 | F-2 | ジャンル推定（大ジャンル） | 必須 |
 | F-2b | サブジャンル推定 | 必須 |
 | F-3 | 重複排除・書籍統合 | 必須 |
@@ -42,11 +41,7 @@ data/booklist.csv   data/offline_bibliography_list.csv   data/kindle-list.csv
                                        ▼ F-2: ジャンル推定（大ジャンル）
                                        ▼ F-2b: サブジャンル推定
                                        ▼ F-3: 重複排除・書籍統合
-                                       ▼ F-1d: Gemini書誌情報充足の適用（任意）
                                        ▼ F-4: books.json 生成
-
-Gemini書誌情報充足（F-1d）は独立したスクリプト（`scripts/enrich-gemini.js`）で事前に実行し、
-`data/book-gemini-enrichment.json` を生成する。`process.js` 実行時にこのファイルが存在する場合に適用される。
 ```
 
 ---
@@ -316,7 +311,7 @@ F-1 の著者名抽出後、以下の順で著者名の補完・正規化を行�
 | 著者名 | Amazon CSVに含まれないため空文字列固定 |
 | source | `"amazon_kindle"` 固定 |
 
-> **著者情報について**: ASINをキーにした著者情報の自動取得は `enrich.js`（openBD/Google Books ベース）では対応しない。`scripts/enrich-gemini.js`（F-1d）による Gemini API 問い合わせで補完する。
+> **著者情報について**: ASINをキーにした著者情報の自動取得は現時点では対象外（Amazon Product Advertising API は申請必要、既存の openBD/Google Books API は ISBN ベース）。将来的な `enrich.js` 拡張の検討課題とする。
 
 ### F-1c 出力（1レコードあたり）
 
@@ -334,53 +329,6 @@ F-1 の著者名抽出後、以下の順で著者名の補完・正規化を行�
 | `file_id` | `null` |
 | `file_size_mb` | `null` |
 | `source` | `"amazon_kindle"` |
-
----
-
-## F-1d: Gemini書誌情報充足
-
-### 概要
-
-著者名・ページ数が未設定の書籍に対して Gemini API へ一件ずつ問い合わせ、取得した情報を `data/book-gemini-enrichment.json` に差分保存する。`process.js` 実行時（F-4）にこのファイルが存在する場合、`books.json` 生成前に適用される。
-
-> 詳細設計: [`docs/app/design/032-gemini-bibliographic-enrichment.md`](../../design/032-gemini-bibliographic-enrichment.md)
-> 実装設計: [`docs/app/spec/system/data-pipeline.md`](../system/data-pipeline.md) セクション4
-
-### 対象フィールド（フェーズ1）
-
-| フィールド | 対象条件 |
-|----------|---------|
-| `author` | 空文字列 `""` |
-| `pages` | `null` |
-
-### 実行方法
-
-```bash
-# 差分生成（デフォルト）
-node scripts/enrich-gemini.js
-
-# 全未設定書籍を再問い合わせ
-node scripts/enrich-gemini.js --all
-```
-
-**前提条件**: 環境変数 `GEMINI_API_KEY` が設定されていること。
-
-### 適用ルール
-
-| 条件 | 処理 |
-|------|------|
-| 既存値あり（空文字列を除く） | Gemini 値で上書きしない |
-| `author` が `""` かつ Gemini 値が非 null | Gemini 値を適用 |
-| `pages` が `null` かつ Gemini 値が非 null | Gemini 値を適用 |
-| Gemini 値が `null` | 既存値を保持 |
-
-### 出力
-
-| 項目 | 内容 |
-|------|------|
-| ファイルパス | `data/book-gemini-enrichment.json` |
-| キー | `books.json` の `id` |
-| フィールド | `author`、`pages`、`enrichedAt`、`model` |
 
 ---
 

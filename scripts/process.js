@@ -9,7 +9,6 @@ const AUTHOR_ALIASES_PATH = path.join(__dirname, '..', 'data', 'author-aliases.j
 const BOOK_CORRECTIONS_PATH = path.join(__dirname, '..', 'data', 'book-corrections.json');
 const OFFLINE_CSV_PATH = path.join(__dirname, '..', 'data', 'offline_bibliography_list.csv');
 const KINDLE_BOOKS_PATH = path.join(__dirname, '..', 'data', 'kindle-books.json');
-const GEMINI_ENRICHMENT_PATH = path.join(__dirname, '..', 'data', 'book-gemini-enrichment.json');
 
 const OFFLINE_GENRE_MAP = {
   'コンピュータ・IT技術': 'コンピュータ',
@@ -519,21 +518,6 @@ function generateId(book) {
   return 'title_' + hash.toString(16).padStart(8, '0');
 }
 
-/**
- * Apply Gemini bibliographic enrichment to the books array (in-place).
- * Enrichment data is keyed by book id (ISBN → ASIN → title hash).
- * Only fills in fields that are currently unset (empty string or null).
- */
-function applyGeminiEnrichment(books, enrichment) {
-  for (const book of books) {
-    const id = generateId(book);
-    const e = enrichment[id];
-    if (!e) continue;
-    if (e.author && !book.author) book.author = e.author;
-    if (e.pages && !book.pages) book.pages = e.pages;
-  }
-}
-
 function main() {
   const csvPath = path.join(__dirname, '..', 'data', 'booklist.csv');
   if (!fs.existsSync(csvPath)) {
@@ -588,11 +572,6 @@ function main() {
 
   books.sort((a, b) => a.title.localeCompare(b.title, 'ja'));
 
-  if (fs.existsSync(GEMINI_ENRICHMENT_PATH)) {
-    const geminiEnrichment = JSON.parse(fs.readFileSync(GEMINI_ENRICHMENT_PATH, 'utf-8'));
-    applyGeminiEnrichment(books, geminiEnrichment);
-  }
-
   const output = books.map(book => ({
     id: generateId(book),
     title: book.title,
@@ -625,7 +604,7 @@ function main() {
   console.log(`  出力ファイル: data/books.json`);
 }
 
-module.exports = { parseCSV, filterRecords, parseFilename, extractAuthorFromTitle, applyBookCorrections, normalizeAuthor, resolveAuthorAlias, parseOfflineCsv, parseKindleBooks, estimateGenre, estimateSubgenre, deduplicateBooks, generateId, applyGeminiEnrichment, OFFLINE_GENRE_MAP };
+module.exports = { parseCSV, filterRecords, parseFilename, extractAuthorFromTitle, applyBookCorrections, normalizeAuthor, resolveAuthorAlias, parseOfflineCsv, parseKindleBooks, estimateGenre, estimateSubgenre, deduplicateBooks, generateId, OFFLINE_GENRE_MAP };
 
 if (require.main === module) {
   main();

@@ -19,7 +19,6 @@ const {
   estimateSubgenre,
   deduplicateBooks,
   generateId,
-  applyGeminiEnrichment,
   OFFLINE_GENRE_MAP,
 } = require('./process.js');
 
@@ -955,73 +954,5 @@ describe('Integration', () => {
     const ids = books.map(b => generateId(b));
     const uniqueIds = new Set(ids);
     assert.equal(uniqueIds.size, ids.length, `Found ${ids.length - uniqueIds.size} duplicate IDs`);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// applyGeminiEnrichment — T-1 to T-3 (T-6 integration)
-// ---------------------------------------------------------------------------
-
-describe('applyGeminiEnrichment', () => {
-  function makeBook(overrides) {
-    return {
-      isbn: null,
-      asin: null,
-      title: 'テスト本',
-      author: '',
-      pages: null,
-      ...overrides,
-    };
-  }
-
-  test('T-2/T-6: fills empty author from enrichment', () => {
-    const book = makeBook({ asin: 'B001', author: '' });
-    const enrichment = { B001: { author: '著者A', pages: null } };
-    applyGeminiEnrichment([book], enrichment);
-    assert.equal(book.author, '著者A');
-  });
-
-  test('T-2/T-6: fills null pages from enrichment', () => {
-    const book = makeBook({ asin: 'B002', author: '', pages: null });
-    const enrichment = { B002: { author: null, pages: 200 } };
-    applyGeminiEnrichment([book], enrichment);
-    assert.equal(book.pages, 200);
-  });
-
-  test('T-2: does not overwrite existing author', () => {
-    const book = makeBook({ asin: 'B003', author: '既存著者' });
-    const enrichment = { B003: { author: 'Gemini著者', pages: null } };
-    applyGeminiEnrichment([book], enrichment);
-    assert.equal(book.author, '既存著者');
-  });
-
-  test('T-2: does not overwrite existing pages', () => {
-    const book = makeBook({ asin: 'B004', author: '', pages: 150 });
-    const enrichment = { B004: { author: null, pages: 999 } };
-    applyGeminiEnrichment([book], enrichment);
-    assert.equal(book.pages, 150);
-  });
-
-  test('T-3: null enrichment values leave book fields unchanged', () => {
-    const book = makeBook({ asin: 'B005', author: '', pages: null });
-    const enrichment = { B005: { author: null, pages: null } };
-    applyGeminiEnrichment([book], enrichment);
-    assert.equal(book.author, '');
-    assert.equal(book.pages, null);
-  });
-
-  test('T-1: book without enrichment entry is not modified', () => {
-    const book = makeBook({ asin: 'B006', author: '', pages: null });
-    applyGeminiEnrichment([book], {});
-    assert.equal(book.author, '');
-    assert.equal(book.pages, null);
-  });
-
-  test('T-6: uses ISBN-based id when book has isbn', () => {
-    const book = makeBook({ isbn: '9784101020112', author: '', pages: null });
-    const enrichment = { '9784101020112': { author: 'ISBN著者', pages: 300 } };
-    applyGeminiEnrichment([book], enrichment);
-    assert.equal(book.author, 'ISBN著者');
-    assert.equal(book.pages, 300);
   });
 });

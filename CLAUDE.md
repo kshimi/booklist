@@ -49,10 +49,6 @@ npm install
 # Generate books.json from CSV (data processing pipeline)
 node scripts/process.js
 
-# Enrich bibliographic data via Gemini API (requires GEMINI_API_KEY)
-node scripts/enrich-gemini.js                     # diff mode: unenriched books only
-node scripts/enrich-gemini.js --all               # re-query all books missing author/pages
-
 # Generate AI recommendation comments for daily suggestion (requires GEMINI_API_KEY)
 node scripts/generate-ai-comments.js              # diff mode: ungenerated books only
 node scripts/generate-ai-comments.js --days 30    # prioritize next 30 days' featured books
@@ -75,10 +71,9 @@ npm run build
 
 - Input data: `data/booklist.csv` (exported from Google Drive via Google Apps Script)
 - Generated catalog: `data/books.json` (do not edit manually; regenerate via `process.js`)
-- Gemini enrichment: `data/book-gemini-enrichment.json` (do not edit manually; regenerate via `enrich-gemini.js`)
 - AI comments: `data/book-ai-comments.json` (do not edit manually; regenerate via `generate-ai-comments.js`)
 - No backend server — all runtime logic runs in the browser
-- `GEMINI_API_KEY` env var required for `enrich-gemini.js` and `generate-ai-comments.js`; see `docs/dev/gemini-api-setup.md`
+- `GEMINI_API_KEY` env var required for `generate-ai-comments.js`; see `docs/dev/gemini-api-setup.md`
 
 ## Workflow Reference
 
