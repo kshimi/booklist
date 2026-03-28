@@ -412,7 +412,7 @@ const comment = result.response.text();
 ## 10. Gemini API（ビルド時・書誌情報充足）
 
 > 機能要件: F-1d（Gemini書誌情報充足）
-> 設計ドキュメント: [`docs/app/design/032-gemini-bibliographic-enrichment.md`](../../design/032-gemini-bibliographic-enrichment.md)
+> 設計ドキュメント: [`docs/app/design/032-gemini-bibliographic-enrichment.md`](../../design/032-gemini-bibliographic-enrichment.md)、[`docs/app/design/033-enrich-gemini-hallucination-fix.md`](../../design/033-enrich-gemini-hallucination-fix.md)
 
 ### 概要
 
@@ -422,7 +422,7 @@ const comment = result.response.text();
 | 項目 | 値 |
 |------|---|
 | SDK | `@google/generative-ai` |
-| モデル | `gemini-2.5-flash-lite`（無料枠利用） |
+| モデル | `gemini-2.5-flash`（無料枠利用） |
 | 認証 | 環境変数 `GEMINI_API_KEY` |
 | 呼び出し元 | Node.js スクリプト（手動実行のみ） |
 
@@ -434,7 +434,11 @@ const comment = result.response.text();
 タイトル: {title}
 {ASIN: {asin} | ISBN: {isbn}（いずれかが存在する場合のみ）}
 
-以下のJSON形式で回答してください（不明な場合は null）:
+この書籍の著者名とページ数を確実に知っている場合のみ回答してください。
+情報が不確か・類似タイトルしか見当たらない・複数候補がある場合は、必ずnullを返してください。
+推測や類似書籍の情報を使用しないでください。
+
+以下のJSON形式で回答してください:
 {"author": "著者名（日本語表記）", "pages": ページ数の数値}
 
 JSONのみを出力してください（前置きや説明は不要です）。
@@ -458,7 +462,7 @@ JSONのみを出力してください（前置きや説明は不要です）。
     "author": "ゆうきゆう",
     "pages": 192,
     "enrichedAt": "2026-03-27",
-    "model": "gemini-2.5-flash-lite"
+    "model": "gemini-2.5-flash"
   }
 }
 ```

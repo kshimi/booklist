@@ -344,6 +344,7 @@ F-1 の著者名抽出後、以下の順で著者名の補完・正規化を行�
 著者名・ページ数が未設定の書籍に対して Gemini API へ一件ずつ問い合わせ、取得した情報を `data/book-gemini-enrichment.json` に差分保存する。`process.js` 実行時（F-4）にこのファイルが存在する場合、`books.json` 生成前に適用される。
 
 > 詳細設計: [`docs/app/design/032-gemini-bibliographic-enrichment.md`](../../design/032-gemini-bibliographic-enrichment.md)
+> ハルシネーション対策: [`docs/app/design/033-enrich-gemini-hallucination-fix.md`](../../design/033-enrich-gemini-hallucination-fix.md)
 > 実装設計: [`docs/app/spec/system/data-pipeline.md`](../system/data-pipeline.md) セクション4
 
 ### 対象フィールド（フェーズ1）

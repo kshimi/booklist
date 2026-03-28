@@ -409,7 +409,7 @@ for (const book of books) {
 ## 4. enrich-gemini.js パイプライン（手動実行）
 
 > 機能要件: F-1d（Gemini書誌情報充足）
-> 設計ドキュメント: [`docs/app/design/032-gemini-bibliographic-enrichment.md`](../../design/032-gemini-bibliographic-enrichment.md)
+> 設計ドキュメント: [`docs/app/design/032-gemini-bibliographic-enrichment.md`](../../design/032-gemini-bibliographic-enrichment.md)、[`docs/app/design/033-enrich-gemini-hallucination-fix.md`](../../design/033-enrich-gemini-hallucination-fix.md)
 
 ### 概要
 
@@ -483,13 +483,13 @@ JSONのみを出力してください（前置きや説明は不要です）。
     "author": "ゆうきゆう",
     "pages": 192,
     "enrichedAt": "2026-03-27",
-    "model": "gemini-2.5-flash-lite"
+    "model": "gemini-2.5-flash"
   },
   "B00I8PIBEG": {
     "author": "ゆうきゆう",
     "pages": null,
     "enrichedAt": "2026-03-27",
-    "model": "gemini-2.5-flash-lite"
+    "model": "gemini-2.5-flash"
   }
 }
 ```
