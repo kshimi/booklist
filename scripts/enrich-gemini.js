@@ -7,7 +7,7 @@ const BOOKS_PATH = path.join(__dirname, '..', 'data', 'books.json');
 const ENRICHMENT_PATH = path.join(__dirname, '..', 'data', 'book-gemini-enrichment.json');
 
 const TODAY = new Date().toISOString().slice(0, 10);
-const MODEL_NAME = 'gemini-2.5-flash-lite';
+const MODEL_NAME = 'gemini-2.5-flash';
 
 // ---------------------------------------------------------------------------
 // CLI options
@@ -29,7 +29,10 @@ function buildPrompt(book) {
     prompt += `ISBN: ${book.isbn}\n`;
   }
   prompt +=
-    '\n以下のJSON形式で回答してください（不明な場合は null）:\n' +
+    '\nこの書籍の著者名とページ数を確実に知っている場合のみ回答してください。\n' +
+    '情報が不確か・類似タイトルしか見当たらない・複数候補がある場合は、必ずnullを返してください。\n' +
+    '推測や類似書籍の情報を使用しないでください。\n\n' +
+    '以下のJSON形式で回答してください:\n' +
     '{"author": "著者名（日本語表記）", "pages": ページ数の数値}\n\n' +
     'JSONのみを出力してください（前置きや説明は不要です）。';
   return prompt;
