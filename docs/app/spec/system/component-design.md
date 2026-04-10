@@ -1,8 +1,8 @@
 # コンポーネント設計
 
 **作成日**: 2026-02-28
-**更新日**: 2026-03-03
-**ステータス**: ドラフト v0.2
+**更新日**: 2026-04-10
+**ステータス**: ドラフト v0.3
 **対象フェーズ**: フェーズ1（静的SPA）
 
 ---
@@ -27,9 +27,10 @@ App
 ├── BookDetailPage（S-2 書籍詳細）
 │   ├── BookBasicInfo
 │   ├── BookVersionLinks
-│   └── BookExternalInfo
-│       ├── LoadingSpinner
-│       └── ExternalBookDetails
+│   ├── BookExternalInfo
+│   │   ├── LoadingSpinner
+│   │   └── ExternalBookDetails
+│   └── BookEditForm（Kindle書籍のみ表示）
 └── StatsDashboardPage（S-3 統計ダッシュボード）
     ├── GenreChart
     └── AuthorRanking
@@ -79,9 +80,13 @@ App
 | Props | `books`（全書籍データ）、`onSelectBook` |
 
 **内部処理**:
-1. `books` に対してフィルタ（キーワード・ジャンル・著者）を適用
+1. `books` に対してフィルタ（キーワード・ジャンル・著者・書誌情報未設定）を適用
 2. ソートを適用
 3. ページネーションで現在ページ分を切り出して `BookGrid` に渡す
+
+**書誌情報未設定フィルタ（F-15）**:
+- `missingInfoOnly` フラグ（boolean）を内部状態で管理する
+- ON のとき `author === ''` の書籍のみ表示する
 
 ---
 
@@ -217,6 +222,10 @@ App
 
 **表示方式**: モーダルまたはオーバーレイで表示する（SPAのため画面遷移はしない）
 
+**書誌情報編集フォーム（F-16）**:
+- `source` に `amazon_kindle` を含む書籍のみ「書誌情報を編集」ボタンを表示する
+- ボタンクリックで `BookEditForm` を展開表示する（折りたたみUI）
+
 ---
 
 ### BookBasicInfo
@@ -301,6 +310,27 @@ App
 
 ---
 
+### BookEditForm（#46追加）
+
+| 項目 | 内容 |
+|------|------|
+| 役割 | Kindle書籍の書誌情報（著者・ジャンル・サブジャンル・ページ数）を入力してローカルファイルに保存する |
+| Props | `book`（対象書籍）、`onSaved`（保存成功後コールバック） |
+
+**状態**:
+- `status`: `idle` / `saving` / `saved` / `error`
+
+**入力フィールド**: 著者名（text）・ジャンル（select）・サブジャンル（text）・ページ数（number）
+
+**保存動作**:
+1. `POST /api/corrections` に `{ id, author, genre, subgenre, pages }` を送信
+2. 成功時 → `status: saved`、案内メッセージ表示
+3. 失敗時 → `status: error`、エラーメッセージ表示
+
+> **利用環境**: ローカル開発環境（Vite dev server）専用。本番ビルドではAPIエンドポイントが存在しないためエラーになる。
+
+---
+
 ### StatsDashboardPage（S-3）
 
 | 項目 | 内容 |
@@ -364,6 +394,7 @@ src/
 │   ├── BookVersionLinks.jsx
 │   ├── BookExternalInfo.jsx
 │   ├── ExternalBookDetails.jsx
+│   ├── BookEditForm.jsx           # #46追加: 書誌情報入力フォーム（Kindle書籍用）
 │   ├── LoadingSpinner.jsx
 │   ├── GenreChart.jsx
 │   ├── AuthorRanking.jsx
@@ -384,3 +415,4 @@ src/
 | フィルタ状態は App で一元管理 | S-1 とS-3 の双方向連携（チャートクリック→一覧絞り込み）のため |
 | タブ切替で S-1 / S-3 を切り替え | S-2 はモーダルのため、S-1 と S-3 のみナビゲーション対象 |
 | グラフはシンプルな実装 | 819件規模の静的データのため、重いライブラリは不要 |
+| 書誌情報保存はViteミドルウェアで実現（#46） | バックエンドサーバーを追加せずに `npm run dev` 内でファイル書き込みAPIを提供する。本番ビルドには含まれない |
