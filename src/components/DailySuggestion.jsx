@@ -17,32 +17,34 @@ export default function DailySuggestion({ books, bookMetadata, aiComments, onSel
         今日のおすすめ（{todayLabel()}）
       </p>
       <div
-        className="flex gap-4 cursor-pointer group"
+        className="cursor-pointer group"
         onClick={() => onSelectBook(book)}
       >
-        {coverUrl && (
-          <img
-            src={coverUrl}
-            alt={book.title}
-            className="w-16 h-24 object-cover rounded shadow-sm flex-shrink-0"
-          />
-        )}
-        <div className="flex-1 min-w-0">
-          <h2 className="text-sm font-bold text-gray-800 leading-snug group-hover:text-blue-600 transition-colors line-clamp-2">
-            {book.title}
-          </h2>
-          {book.author && (
-            <p className="text-xs text-gray-500 mt-0.5">{book.author}</p>
+        <div className="flex gap-4">
+          {coverUrl && (
+            <img
+              src={coverUrl}
+              alt={book.title}
+              className="w-16 h-24 object-cover rounded shadow-sm flex-shrink-0"
+            />
           )}
-          <span className="inline-block mt-1 bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">
-            {book.genre}
-          </span>
-          {displayText && (
-            <p className="text-xs text-gray-700 mt-2 leading-relaxed line-clamp-4">
-              {displayText}
-            </p>
-          )}
+          <div className="flex-1 min-w-0">
+            <h2 className="text-sm font-bold text-gray-800 leading-snug group-hover:text-blue-600 transition-colors line-clamp-2">
+              {book.title}
+            </h2>
+            {book.author && (
+              <p className="text-xs text-gray-500 mt-0.5">{book.author}</p>
+            )}
+            <span className="inline-block mt-1 bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">
+              {book.genre}
+            </span>
+          </div>
         </div>
+        {displayText && (
+          <p className="text-xs text-gray-700 mt-3 leading-relaxed">
+            {displayText}
+          </p>
+        )}
       </div>
     </div>
   );
