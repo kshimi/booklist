@@ -20,6 +20,12 @@ const correctionsPlugin = {
       req.on('end', () => {
         try {
           const { id, author, genre, subgenre, pages } = JSON.parse(body);
+          if (!id || typeof id !== 'string') {
+            res.statusCode = 400;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ ok: false, error: 'id is required' }));
+            return;
+          }
           const filePath = path.resolve(__dirname, 'data/book-corrections.json');
           const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
           if (!data.id_corrections) data.id_corrections = {};

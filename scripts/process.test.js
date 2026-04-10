@@ -226,6 +226,7 @@ describe('applyIdCorrections', () => {
     const result = applyIdCorrections(base, { author: '劉慈欣', genre: 'SF', subgenre: null, pages: 400 });
     assert.equal(result.author, '劉慈欣');
     assert.equal(result.genre, 'SF');
+    assert.equal(result.subgenre, null);
     assert.equal(result.pages, 400);
   });
 

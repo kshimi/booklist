@@ -591,13 +591,19 @@ function main() {
 
   const output = books.map(book => {
     const id = generateId(book);
-    const corrected = applyIdCorrections(book, idCorrections[id]);
+    const correction = idCorrections[id];
+    const corrected = applyIdCorrections(book, correction);
+    // Re-estimate subgenre when genre is corrected without an explicit subgenre correction,
+    // matching the intended behaviour of applying corrections before genre estimation (F-2).
+    const subgenre = (correction?.genre && !correction?.subgenre)
+      ? estimateSubgenre(corrected.genre, corrected.title, corrected.author, corrected.series) ?? corrected.subgenre
+      : corrected.subgenre;
     return {
       id,
       title: corrected.title,
       author: corrected.author,
       genre: corrected.genre,
-      subgenre: corrected.subgenre,
+      subgenre,
       series: corrected.series,
       isbn: corrected.isbn,
       asin: corrected.asin ?? null,

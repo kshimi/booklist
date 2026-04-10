@@ -85,7 +85,7 @@ export default function BookDetailPage({ book, bookMetadata, onClose, onSelectAu
               </button>
               {editOpen && (
                 <div className="mt-3">
-                  <BookEditForm book={book} onSaved={() => setEditOpen(false)} />
+                  <BookEditForm book={book} />
                 </div>
               )}
             </div>
