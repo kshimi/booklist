@@ -45,6 +45,12 @@ test: add unit tests for validation (#22)
 chore: update dependencies (#25)
 ```
 
+## Project-specific Issue References
+
+| Change Type | Issue |
+|-------------|-------|
+| Manual bibliographic edits to `data/books.json` (author, pages, ISBN, genre, etc.) | #48 |
+
 ## Pre-commit Checks
 
 Before committing, run:
