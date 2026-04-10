@@ -1,3 +1,7 @@
 .env
 node_modules/
 dist/
+.claude/settings.local.json
+data/kindle-excluded.csv
+data/kindle-list.csv
+data/kindle-merged.csv

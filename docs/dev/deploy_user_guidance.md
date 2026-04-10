@@ -62,11 +62,23 @@ Google Apps Script で最新の CSV を取得して `data/booklist.csv` を差�
 node scripts/process.js
 ```
 
-### 3. コミットして push
+### 3. AI推薦コメントの更新（任意）
+
+直近の daily book suggestion に AI コメントを付与します。
 
 ```bash
-git add data/books.json
-git commit -m "chore: update books.json"
+./scripts/generate-ai-comments.sh --days 30
+```
+
+- 1Password CLI による認証が自動で行われます
+- 既にコメントがある本はスキップされます
+- 実行には `GEMINI_API_KEY` が 1Password に登録されている必要があります（初回設定は `docs/dev/gemini-api-setup.md` を参照）
+
+### 4. コミットして push
+
+```bash
+git add data/books.json data/book-ai-comments.json
+git commit -m "chore: update books.json and ai comments"
 git push origin master
 ```
 
