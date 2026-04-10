@@ -11,6 +11,7 @@ const {
   parseFilename,
   extractAuthorFromTitle,
   applyBookCorrections,
+  applyIdCorrections,
   normalizeAuthor,
   resolveAuthorAlias,
   parseOfflineCsv,
@@ -211,6 +212,44 @@ describe('applyBookCorrections', () => {
       { original_title: 'タイトル', title: 'タイトル', author: '著者', pages: null, isbn: null },
     ]);
     assert.deepEqual(result, { title: 'タイトル', author: '著者', pages: null, isbn: null });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// applyIdCorrections
+// ---------------------------------------------------------------------------
+
+describe('applyIdCorrections', () => {
+  const base = { title: '三体', author: '', genre: '未分類', subgenre: null, pages: null, asin: 'B07TS9XTSD' };
+
+  test('overrides author, genre, subgenre, pages when correction has non-empty values', () => {
+    const result = applyIdCorrections(base, { author: '劉慈欣', genre: 'SF', subgenre: null, pages: 400 });
+    assert.equal(result.author, '劉慈欣');
+    assert.equal(result.genre, 'SF');
+    assert.equal(result.pages, 400);
+  });
+
+  test('does not override fields with empty string', () => {
+    const result = applyIdCorrections(base, { author: '', genre: '', subgenre: '', pages: null });
+    assert.equal(result.author, '');
+    assert.equal(result.genre, '未分類');
+    assert.equal(result.pages, null);
+  });
+
+  test('returns book unchanged when correction is null', () => {
+    const result = applyIdCorrections(base, null);
+    assert.deepEqual(result, base);
+  });
+
+  test('returns book unchanged when correction is undefined', () => {
+    const result = applyIdCorrections(base, undefined);
+    assert.deepEqual(result, base);
+  });
+
+  test('partial correction only overrides provided non-empty fields', () => {
+    const result = applyIdCorrections(base, { author: '著者名', genre: '', subgenre: '', pages: null });
+    assert.equal(result.author, '著者名');
+    assert.equal(result.genre, '未分類');
   });
 });
 

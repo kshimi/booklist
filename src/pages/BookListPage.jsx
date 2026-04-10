@@ -19,6 +19,7 @@ export default function BookListPage({ books, onSelectBook, filterOverride }) {
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [selectedSubgenre, setSelectedSubgenre] = useState(null);
   const [selectedAuthor, setSelectedAuthor] = useState(null);
+  const [missingInfoOnly, setMissingInfoOnly] = useState(false);
   const [sortKey, setSortKey] = useState('title');
   const [sortOrder, setSortOrder] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -32,6 +33,7 @@ export default function BookListPage({ books, onSelectBook, filterOverride }) {
     setSelectedGenre(filterOverride.genre ?? null);
     setSelectedSubgenre(filterOverride.subgenre ?? null);
     setSelectedAuthor(filterOverride.author ?? null);
+    setMissingInfoOnly(false);
     setCurrentPage(1);
   }, [filterOverride]);
 
@@ -68,8 +70,9 @@ export default function BookListPage({ books, onSelectBook, filterOverride }) {
         .filter(
           book => !selectedSubgenre || (book.subgenre ?? 'その他') === selectedSubgenre
         )
-        .filter(book => !selectedAuthor || book.author === selectedAuthor),
-    [books, keyword, selectedGenre, selectedSubgenre, selectedAuthor]
+        .filter(book => !selectedAuthor || book.author === selectedAuthor)
+        .filter(book => !missingInfoOnly || book.author === ''),
+    [books, keyword, selectedGenre, selectedSubgenre, selectedAuthor, missingInfoOnly]
   );
 
   // Sort
@@ -126,7 +129,7 @@ export default function BookListPage({ books, onSelectBook, filterOverride }) {
         onSelectSubgenre={handleSubgenreSelect}
       />
 
-      {/* Controls row: author filter, sort, result count */}
+      {/* Controls row: author filter, sort, missing-info filter, result count */}
       <div className="flex flex-wrap items-center gap-3">
         <AuthorFilter
           authors={authors}
@@ -134,6 +137,15 @@ export default function BookListPage({ books, onSelectBook, filterOverride }) {
           onSelect={handleAuthorSelect}
         />
         <SortControl sortKey={sortKey} sortOrder={sortOrder} onChange={handleSortChange} />
+        <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={missingInfoOnly}
+            onChange={e => { setMissingInfoOnly(e.target.checked); setCurrentPage(1); }}
+            className="accent-blue-500"
+          />
+          書誌情報未設定のみ
+        </label>
         <div className="ml-auto">
           <ResultSummary
             totalCount={filteredBooks.length}

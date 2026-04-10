@@ -435,6 +435,21 @@ function estimateSubgenre(genre, title, author, series) {
 }
 
 /**
+ * Apply id_corrections entry to a book's fields.
+ * Only overrides fields that have a non-empty, non-null value in the correction.
+ */
+function applyIdCorrections(book, correction) {
+  if (!correction) return book;
+  return {
+    ...book,
+    author: correction.author || book.author,
+    genre: correction.genre || book.genre,
+    subgenre: correction.subgenre || book.subgenre,
+    pages: correction.pages || book.pages,
+  };
+}
+
+/**
  * Deduplicate file records into unique book entries.
  * Groups by ISBN (if present) or title; prefers original version values.
  */
@@ -529,9 +544,11 @@ function main() {
     ? JSON.parse(fs.readFileSync(AUTHOR_ALIASES_PATH, 'utf-8'))
     : {};
 
-  const bookCorrections = fs.existsSync(BOOK_CORRECTIONS_PATH)
-    ? JSON.parse(fs.readFileSync(BOOK_CORRECTIONS_PATH, 'utf-8')).corrections || []
-    : [];
+  const bookCorrectionsFile = fs.existsSync(BOOK_CORRECTIONS_PATH)
+    ? JSON.parse(fs.readFileSync(BOOK_CORRECTIONS_PATH, 'utf-8'))
+    : {};
+  const bookCorrections = bookCorrectionsFile.corrections || [];
+  const idCorrections = bookCorrectionsFile.id_corrections || {};
 
   const csvText = fs.readFileSync(csvPath, 'utf-8');
   const rows = parseCSV(csvText);
@@ -572,20 +589,24 @@ function main() {
 
   books.sort((a, b) => a.title.localeCompare(b.title, 'ja'));
 
-  const output = books.map(book => ({
-    id: generateId(book),
-    title: book.title,
-    author: book.author,
-    genre: book.genre,
-    subgenre: book.subgenre,
-    series: book.series,
-    isbn: book.isbn,
-    asin: book.asin ?? null,
-    pages: book.pages,
-    versions: book.versions,
-    version_files: book.version_files,
-    source: book.source,
-  }));
+  const output = books.map(book => {
+    const id = generateId(book);
+    const corrected = applyIdCorrections(book, idCorrections[id]);
+    return {
+      id,
+      title: corrected.title,
+      author: corrected.author,
+      genre: corrected.genre,
+      subgenre: corrected.subgenre,
+      series: corrected.series,
+      isbn: corrected.isbn,
+      asin: corrected.asin ?? null,
+      pages: corrected.pages,
+      versions: corrected.versions,
+      version_files: corrected.version_files,
+      source: corrected.source,
+    };
+  });
 
   const outPath = path.join(__dirname, '..', 'data', 'books.json');
   fs.writeFileSync(outPath, JSON.stringify(output, null, 2), 'utf-8');
@@ -604,7 +625,7 @@ function main() {
   console.log(`  出力ファイル: data/books.json`);
 }
 
-module.exports = { parseCSV, filterRecords, parseFilename, extractAuthorFromTitle, applyBookCorrections, normalizeAuthor, resolveAuthorAlias, parseOfflineCsv, parseKindleBooks, estimateGenre, estimateSubgenre, deduplicateBooks, generateId, OFFLINE_GENRE_MAP };
+module.exports = { parseCSV, filterRecords, parseFilename, extractAuthorFromTitle, applyBookCorrections, applyIdCorrections, normalizeAuthor, resolveAuthorAlias, parseOfflineCsv, parseKindleBooks, estimateGenre, estimateSubgenre, deduplicateBooks, generateId, OFFLINE_GENRE_MAP };
 
 if (require.main === module) {
   main();

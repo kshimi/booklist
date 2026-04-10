@@ -1,9 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import BookBasicInfo from '../components/BookBasicInfo';
 import BookVersionLinks from '../components/BookVersionLinks';
 import BookExternalInfo from '../components/BookExternalInfo';
+import BookEditForm from '../components/BookEditForm';
 
 export default function BookDetailPage({ book, bookMetadata, onClose, onSelectAuthor }) {
+  const [editOpen, setEditOpen] = useState(false);
+
   // Close on Escape key
   useEffect(() => {
     function handleKeyDown(e) {
@@ -23,6 +26,7 @@ export default function BookDetailPage({ book, bookMetadata, onClose, onSelectAu
   const sources = Array.isArray(book.source) ? book.source : (book.source ? [book.source] : ['google_drive']);
   const hasDrive = sources.includes('google_drive');
   const hasPaper = sources.includes('paper');
+  const hasKindle = sources.includes('amazon_kindle');
 
   return (
     <div
@@ -69,6 +73,23 @@ export default function BookDetailPage({ book, bookMetadata, onClose, onSelectAu
 
           {/* F-11: External book data */}
           <BookExternalInfo isbn={book.isbn} preloaded={preloaded} />
+
+          {/* F-16: Bibliographic edit form (Kindle only, dev environment) */}
+          {hasKindle && (
+            <div className="border-t border-gray-100 pt-3">
+              <button
+                onClick={() => setEditOpen(o => !o)}
+                className="text-xs text-blue-500 hover:text-blue-700 font-medium"
+              >
+                {editOpen ? '書誌情報を編集 ▲' : '書誌情報を編集 ▼'}
+              </button>
+              {editOpen && (
+                <div className="mt-3">
+                  <BookEditForm book={book} onSaved={() => setEditOpen(false)} />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
