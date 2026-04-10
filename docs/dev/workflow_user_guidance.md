@@ -5,12 +5,13 @@ Claude Code を活用した日常開発の操作手順です。
 ## 開発フロー概要
 
 ```
-1. Issue 作成        ← 開発者
-2. 設計書作成指示     ← 開発者 → Claude Code
-3. 設計書レビュー     ← 開発者
-4. 実装指示          ← 開発者 → Claude Code
-5. コードレビュー     ← 開発者
-6. マージ            ← 開発者
+1. Issue 作成              ← 開発者
+2. 設計書作成指示           ← 開発者 → Claude Code
+3. 設計書レビュー           ← 開発者
+4. 実装指示                ← 開発者 → Claude Code
+5. コードレビュー           ← 開発者
+6. マージ                  ← 開発者
+7. マージ後クリーンアップ    ← 開発者 → Claude Code
 ```
 
 ## 1. Issue の作成
@@ -155,17 +156,29 @@ GitHub の PR ページで「Merge pull request」を実行します。
 PR に `Closes #<Issue番号>` が含まれていれば自動的にクローズされます。
 含まれていない場合は手動でクローズします。
 
-### ブランチの削除
+### マージ後のクリーンアップ（Claude Code に依頼）
 
-マージ後、不要になったブランチを削除します。
+マージが完了したら、Claude Code にクリーンアップを依頼します。
 
-```bash
-# リモートブランチの削除（GitHub PR ページからも可能）
-git push origin --delete <branch-name>
-
-# ローカルブランチの削除
-git branch -d <branch-name>
 ```
+PR #<PR番号> をマージしました。クリーンアップしてください。
+```
+
+または merge-cleanup スキルを直接呼び出します。
+
+```
+/merge-cleanup #<PR番号>
+```
+
+### Claude Code が行うこと
+
+1. PR・Issue のマージ・クローズ状態を確認
+2. ローカルの未コミット変更を退避（stash）
+3. master を最新に同期（`git pull origin master`）
+4. 退避した変更を master に適用
+5. テスト実行（全件 pass を確認）
+6. 残った変更をコミット・プッシュ（生成ファイルを除く）
+7. ローカルのフィーチャーブランチを削除
 
 ## UIのレビューポイント
 
@@ -306,3 +319,4 @@ npm run dev
 | 実装 | `/implement #<番号>` |
 | コミット | `/commit` |
 | レビュー | `/review #<PR番号>` |
+| マージ後クリーンアップ | `/merge-cleanup #<PR番号>` |
