@@ -1,12 +1,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import fs from 'fs';
-import path from 'path';
+import { copyFileSync, existsSync, mkdirSync, createReadStream, readFileSync, statSync, writeFileSync } from 'fs';
+import { resolve, extname, relative, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { copyFileSync, mkdirSync, createReadStream, statSync } from 'fs';
-import { resolve, extname, relative } from 'path';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const MIME_TYPES = {
   '.json': 'application/json',
@@ -39,9 +37,10 @@ function serveDataPlugin() {
     closeBundle() {
       const destDir = resolve('dist/data');
       mkdirSync(destDir, { recursive: true });
-      copyFileSync(resolve('data/books.json'), resolve(destDir, 'books.json'));
-      copyFileSync(resolve('data/book-metadata.json'), resolve(destDir, 'book-metadata.json'));
-      copyFileSync(resolve('data/book-ai-comments.json'), resolve(destDir, 'book-ai-comments.json'));
+      for (const file of ['books.json', 'book-metadata.json', 'book-ai-comments.json']) {
+        const src = resolve('data', file);
+        if (existsSync(src)) copyFileSync(src, resolve(destDir, file));
+      }
     },
   };
 }
@@ -66,11 +65,11 @@ const correctionsPlugin = {
             res.end(JSON.stringify({ ok: false, error: 'id is required' }));
             return;
           }
-          const filePath = path.resolve(__dirname, 'data/book-corrections.json');
-          const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+          const filePath = resolve(__dirname, 'data/book-corrections.json');
+          const data = JSON.parse(readFileSync(filePath, 'utf-8'));
           if (!data.id_corrections) data.id_corrections = {};
           data.id_corrections[id] = { author, genre, subgenre, pages };
-          fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+          writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
           res.setHeader('Content-Type', 'application/json');
           res.end(JSON.stringify({ ok: true }));
         } catch (err) {
