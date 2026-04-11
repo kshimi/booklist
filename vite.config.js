@@ -3,8 +3,48 @@ import react from '@vitejs/plugin-react';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { copyFileSync, mkdirSync, createReadStream, statSync } from 'fs';
+import { resolve, extname, relative } from 'path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const MIME_TYPES = {
+  '.json': 'application/json',
+  '.pdf': 'application/pdf',
+};
+
+/**
+ * Plugin: serve data/ as static files in dev mode and copy to dist/data/ on build.
+ * Replaces publicDir:'.' which broke the production build (copied .git to dist/).
+ */
+function serveDataPlugin() {
+  return {
+    name: 'serve-data',
+    configureServer(server) {
+      const dataRoot = resolve('data');
+      server.middlewares.use('/data', (req, res, next) => {
+        const filePath = resolve(dataRoot, req.url.replace(/^\/+/, ''));
+        // Reject path traversal (e.g. /data/../../package.json)
+        if (relative(dataRoot, filePath).startsWith('..')) { next(); return; }
+        try {
+          statSync(filePath);
+          const mime = MIME_TYPES[extname(filePath)] ?? 'application/octet-stream';
+          res.setHeader('Content-Type', mime);
+          createReadStream(filePath).pipe(res);
+        } catch {
+          next();
+        }
+      });
+    },
+    closeBundle() {
+      const destDir = resolve('dist/data');
+      mkdirSync(destDir, { recursive: true });
+      copyFileSync(resolve('data/books.json'), resolve(destDir, 'books.json'));
+      copyFileSync(resolve('data/book-metadata.json'), resolve(destDir, 'book-metadata.json'));
+      copyFileSync(resolve('data/book-ai-comments.json'), resolve(destDir, 'book-ai-comments.json'));
+    },
+  };
+}
 
 const correctionsPlugin = {
   name: 'corrections-api',
@@ -44,5 +84,7 @@ const correctionsPlugin = {
 };
 
 export default defineConfig({
-  plugins: [react(), correctionsPlugin],
+  base: '/booklist/',
+  plugins: [react(), serveDataPlugin(), correctionsPlugin],
+  publicDir: false,
 });
