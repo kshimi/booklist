@@ -47,7 +47,7 @@
   {
     "id": "B00I8PIBEG",
     "title": "「なるほど！」とわかる マンガはじめての心理学 [マンガ心理学シリーズ]",
-    "author": "",
+    "author": "ゆうきゆう",
     "genre": "ノンフィクション",
     "subgenre": "哲学・思想",
     "series": null,
@@ -61,7 +61,7 @@
   {
     "id": "B00VFNCX2Y",
     "title": "「なるほど！」とわかる マンガはじめての他人の心理学 [マンガ心理学シリーズ]",
-    "author": "",
+    "author": "ゆうきゆう",
     "genre": "ノンフィクション",
     "subgenre": "哲学・思想",
     "series": null,
@@ -206,8 +206,8 @@
   {
     "id": "B00JA05KI8",
     "title": "「超」入門　微分積分　学校では教えてくれない「考え方のコツ」",
-    "author": "",
-    "genre": "未分類",
+    "author": "神永正博",
+    "genre": "実用",
     "subgenre": null,
     "series": null,
     "isbn": null,
@@ -220,8 +220,8 @@
   {
     "id": "B00LSQ8G4W",
     "title": "「納品」をなくせばうまくいく",
-    "author": "",
-    "genre": "未分類",
+    "author": "倉貫義人",
+    "genre": "実用",
     "subgenre": null,
     "series": null,
     "isbn": null,
@@ -234,7 +234,7 @@
   {
     "id": "B009M8U236",
     "title": "「味の素」発明の動機",
-    "author": "",
+    "author": "池田 菊苗",
     "genre": "未分類",
     "subgenre": null,
     "series": null,
@@ -340,8 +340,8 @@
   {
     "id": "B081ZKM6CW",
     "title": "3月のライオン",
-    "author": "",
-    "genre": "未分類",
+    "author": "羽海野チカ",
+    "genre": "漫画・コミック",
     "subgenre": null,
     "series": null,
     "isbn": null,
@@ -422,8 +422,8 @@
   {
     "id": "B0039OVIAK",
     "title": "97 Things Every Programmer Should Know: Collective Wisdom from the Experts",
-    "author": "",
-    "genre": "未分類",
+    "author": "Kevlin Henney",
+    "genre": "コンピュータ",
     "subgenre": null,
     "series": null,
     "isbn": null,
@@ -974,8 +974,8 @@
   {
     "id": "B004BSFKXY",
     "title": "C# Programming Language (Covering C# 4.0), The (Microsoft Windows Development Series)",
-    "author": "",
-    "genre": "未分類",
+    "author": "Peter Hejlsberg",
+    "genre": "コンピュータ",
     "subgenre": null,
     "series": null,
     "isbn": null,
@@ -988,8 +988,8 @@
   {
     "id": "B004OR1XGK",
     "title": "Code Complete (DV-Professional)",
-    "author": "",
-    "genre": "未分類",
+    "author": "Steve McConnell",
+    "genre": "コンピュータ",
     "subgenre": null,
     "series": null,
     "isbn": null,
@@ -1002,8 +1002,8 @@
   {
     "id": "B00JEYPPOE",
     "title": "Code Complete 第2版 上　完全なプログラミングを目指して",
-    "author": "",
-    "genre": "未分類",
+    "author": "Steve McConnell",
+    "genre": "コンピュータ",
     "subgenre": null,
     "series": null,
     "isbn": null,
