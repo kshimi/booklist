@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import SearchBar from '../components/SearchBar';
 import GenreFilter from '../components/GenreFilter';
-import AuthorFilter from '../components/AuthorFilter';
+import AuthorFilter, { AUTHOR_UNSET } from '../components/AuthorFilter';
 import SortControl from '../components/SortControl';
 import ResultSummary from '../components/ResultSummary';
 import BookGrid from '../components/BookGrid';
@@ -70,7 +70,7 @@ export default function BookListPage({ books, onSelectBook, filterOverride }) {
         .filter(
           book => !selectedSubgenre || (book.subgenre ?? 'その他') === selectedSubgenre
         )
-        .filter(book => !selectedAuthor || book.author === selectedAuthor)
+        .filter(book => !selectedAuthor || (selectedAuthor === AUTHOR_UNSET ? book.author === '' : book.author === selectedAuthor))
         .filter(book => !missingInfoOnly || book.author === ''),
     [books, keyword, selectedGenre, selectedSubgenre, selectedAuthor, missingInfoOnly]
   );
