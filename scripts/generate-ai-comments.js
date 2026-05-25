@@ -9,7 +9,7 @@ const AI_COMMENTS_PATH = path.join(__dirname, '..', 'data', 'book-ai-comments.js
 
 const EPOCH = new Date('2000-01-01');
 const TODAY = new Date().toISOString().slice(0, 10);
-const MODEL_NAME = 'gemini-2.5-flash-lite';
+const MODEL_NAME = 'gemini-3.5-flash';
 
 // ---------------------------------------------------------------------------
 // CLI options
