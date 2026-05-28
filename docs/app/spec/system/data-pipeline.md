@@ -283,12 +283,9 @@ if (isbn !== null) {
 
 #### `source` 集約ルール
 
-```javascript
-const sources = new Set(group.map(r => r.source));
-const source = sources.has('google_drive') && sources.has('paper')
-  ? ['google_drive', 'paper']
-  : sources.has('google_drive') ? 'google_drive' : 'paper';
-```
+認識されるソース値は `'amazon_kindle'`、`'google_drive'`、`'paper'` の3種類。グループ内のレコードから認識済みソース値を収集し、1種のみの場合は文字列、複数の場合はアルファベット順の配列として出力する。
+
+認識済みソース値を持つレコードが1件も存在しない場合は `'google_drive'` にフォールバックし、`console.warn` で警告を出力する。警告メッセージには書籍タイトルと実際のソース値一覧を含める。
 
 #### ジャンル優先度テーブル（重複排除時）
 
@@ -505,3 +502,4 @@ Node.js 標準機能（行分割 + カンマ区切り）で実装する。
 | `data/booklist.csv` が存在しない | エラーメッセージを出力してプロセス終了（`process.exit(1)`） |
 | パースに失敗した行 | 警告ログを出力してスキップする（処理を継続する） |
 | ISBN形式の不正 | 警告ログを出力し、`isbn: null` として扱う |
+| 重複排除グループ内に認識済みソース値なし | `console.warn` で警告ログを出力（書籍タイトル・実際のソース値一覧を含む）し、`'google_drive'` にフォールバックして処理を継続する |

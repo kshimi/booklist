@@ -483,6 +483,8 @@ F-1（Google Drive）・F-1b（オフライン）・F-1c（Kindle）のレコー
 | `amazon_kindle` と `paper` 両方 | `["amazon_kindle", "paper"]` |
 | 全ソース | `["amazon_kindle", "google_drive", "paper"]` |
 
+グループ内のすべてのレコードが上記3種類以外のソース値を持つ場合（認識外ソース値のみ）は `"google_drive"` にフォールバックし、警告ログを出力する。警告ログには書籍タイトルと実際のソース値一覧を含める。
+
 ### ジャンル優先度テーブル（重複排除時）
 
 | 優先度（高） | ジャンル |
