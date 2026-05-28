@@ -489,6 +489,12 @@ function deduplicateBooks(files) {
     const sourceValues = ['amazon_kindle', 'google_drive', 'paper'];
     const sourceSet = new Set(group.map(f => f.source).filter(s => sourceValues.includes(s)));
     const presentSources = sourceValues.filter(s => sourceSet.has(s));
+    if (presentSources.length === 0) {
+      console.warn(
+        `[deduplicateBooks] No recognized source in group, defaulting to google_drive. ` +
+        `title="${original.title}" rawSources=${JSON.stringify([...new Set(group.map(f => f.source))])}`
+      );
+    }
     const source = presentSources.length === 0 ? 'google_drive'
       : presentSources.length === 1 ? presentSources[0]
       : presentSources;
