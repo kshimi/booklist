@@ -75,6 +75,24 @@ npm run build
 - No backend server — all runtime logic runs in the browser
 - `GEMINI_API_KEY` env var required for `generate-ai-comments.js`; see `docs/dev/gemini-api-setup.md`
 
+## Project Workflow Settings
+
+> スキルが参照する機械向け正本は `.claude/workflow.json`。下表は人間向け概要。
+
+| Key | Value |
+|-----|-------|
+| Base branch | `main` |
+| Dev command | `npm run dev` |
+| Test command | `npm test` |
+| Lint command | `npm run lint` |
+| Build command | `npm run build` |
+| Data update command | `op run --env-file=.env -- node scripts/process.js` |
+| Generated files | `data/books.json`, `data/book-ai-comments.json` |
+| Secrets vault | `API` |
+| Secrets items | `gemini_booklist` |
+| Secret injection | `wrapped` |
+| Special notes | Manual bibliographic edits to `data/books.json` are tracked as Issue #48 |
+
 ## Workflow Reference
 
 Claude Code's development workflow is defined in `docs/dev/workflow.md`.

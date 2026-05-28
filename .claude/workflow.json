@@ -1,0 +1,16 @@
+{
+  "_schema": "1",
+  "baseBranch": "main",
+  "devCommand": "npm run dev",
+  "testCommand": "npm test",
+  "buildCommand": "npm run build",
+  "lintCommand": "npm run lint",
+  "deployCommand": "",
+  "dataUpdateCommand": "op run --env-file=.env -- node scripts/process.js",
+  "dockerUp": "",
+  "secretsVault": "API",
+  "secretsItems": ["gemini_booklist"],
+  "secretInjection": "wrapped",
+  "generatedFiles": ["data/books.json", "data/book-ai-comments.json"],
+  "specialNotes": "Manual bibliographic edits to data/books.json are tracked as Issue #48"
+}
