@@ -492,6 +492,7 @@ describe('deduplicateBooks', () => {
       series: null,
       version: 'original',
       genre: 'フィクション',
+      source: 'google_drive',
       file_url: 'https://example.com',
       file_id: 'abc123',
       ...overrides,
@@ -667,6 +668,34 @@ describe('deduplicateBooks', () => {
     ];
     const books = deduplicateBooks(files);
     assert.equal(books[0].author, '劉慈欣');
+  });
+
+  test('warns and defaults to google_drive when all sources are unrecognized', () => {
+    const warnings = [];
+    const origWarn = console.warn;
+    console.warn = (...args) => warnings.push(args.join(' '));
+    try {
+      const files = [makeFile({ title: '謎の本', source: 'unknown_source' })];
+      const books = deduplicateBooks(files);
+      assert.equal(books[0].source, 'google_drive');
+    } finally {
+      console.warn = origWarn;
+    }
+    assert.equal(warnings.length, 1);
+    assert.ok(warnings[0].includes('謎の本'));
+    assert.ok(warnings[0].includes('unknown_source'));
+  });
+
+  test('does not warn when at least one recognized source is present', () => {
+    const warnings = [];
+    const origWarn = console.warn;
+    console.warn = (...args) => warnings.push(args.join(' '));
+    try {
+      deduplicateBooks([makeFile({ source: 'google_drive' })]);
+    } finally {
+      console.warn = origWarn;
+    }
+    assert.equal(warnings.length, 0);
   });
 });
 
