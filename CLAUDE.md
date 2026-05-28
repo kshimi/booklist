@@ -74,7 +74,7 @@ npm run build
 
 | Key | Value |
 |-----|-------|
-| Base branch | `main` |
+| Base branch | `master` |
 | Dev command | `npm run dev` |
 | Test command | `npm test` |
 | Lint command | `npm run lint` |

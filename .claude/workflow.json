@@ -1,6 +1,6 @@
 {
   "_schema": "1",
-  "baseBranch": "main",
+  "baseBranch": "master",
   "devCommand": "npm run dev",
   "testCommand": "npm test",
   "buildCommand": "npm run build",
