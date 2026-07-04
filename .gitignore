@@ -3,6 +3,8 @@ node_modules/
 dist/
 .claude/settings.local.json
 .claude/tmp/
+.claude/last-brief.md
+.claude/last-brief-*.md
 data/kindle-excluded.csv
 data/kindle-list.csv
 data/kindle-merged.csv
