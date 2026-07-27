@@ -45,7 +45,7 @@ data/book-metadata.json              ← Git管理対象
 
 data/books.json
 data/book-metadata.json
-  └─ node scripts/generate-ai-comments.js  ← 手動実行（GEMINI_API_KEY 必要）
+  └─ bash scripts/generate-ai-comments.sh  ← 手動実行（1Password 経由で GEMINI_API_KEY を注入）
         │  ・Gemini APIでおすすめコメントを生成
         │  ・差分生成（未生成IDのみ対象、--days N / --all オプションあり）
         │  ・無料枠リミット到達時は中断・途中保存

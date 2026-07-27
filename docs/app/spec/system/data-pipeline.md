@@ -389,19 +389,20 @@ if (isbn !== null) {
 
 ```bash
 # 差分生成（デフォルト: コメント未生成の書籍のみ）
-node scripts/generate-ai-comments.js
+bash scripts/generate-ai-comments.sh
 
 # 今日から N 日後までの日替わり対象書籍を優先して生成
-node scripts/generate-ai-comments.js --days 30
+bash scripts/generate-ai-comments.sh --days 30
 
 # 全書籍のコメントを再生成
-node scripts/generate-ai-comments.js --all
+bash scripts/generate-ai-comments.sh --all
 ```
 
 **前提条件**:
 - `data/books.json` が存在すること
 - `data/book-metadata.json` が存在すること（存在しない場合はあらすじなしでプロンプト送信）
-- 環境変数 `GEMINI_API_KEY` が設定されていること
+- 環境変数 `GEMINI_API_KEY` が設定されていること。値は `.env` の 1Password 参照（`op://API/gemini_booklist/...`）を
+  `scripts/generate-ai-comments.sh` が `op run` で解決して注入するため、`op` にサインイン済みであること
 
 ### パイプライン
 

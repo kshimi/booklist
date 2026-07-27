@@ -19,15 +19,25 @@ This guide explains how to obtain a Gemini API key and configure it for generati
 
 ---
 
-## 2. Configure the API Key
+## 2. Store the API Key in 1Password
 
-Add the key to `.env` in the project root:
+The key is **not** written into `.env` directly. It is stored in 1Password and injected at runtime by
+`scripts/generate-ai-comments.sh` via `op run`.
+
+1. Save the key in 1Password as item `gemini_booklist` in the `API` vault
+   (these names must match `secretsVault` / `secretsItems` in `.claude/workflow.json`)
+2. Point `.env` in the project root at that item using a secret reference:
 
 ```
-GEMINI_API_KEY=your_api_key_here
+GEMINI_API_KEY=op://API/gemini_booklist/<field-name>
 ```
 
-`.env` is listed in `.gitignore` and will not be committed to the repository.
+> ⚠️ Do **not** paste the literal API key into `.env`. Doing so overwrites the reference, breaks the
+> `op run` wrapper, and leaves the key in plaintext on disk.
+
+`.env` is listed in `.gitignore` and will not be committed to the repository. Because it holds only a
+reference — not the key itself — the 1Password CLI (`op`) must be installed and signed in before
+running the script.
 
 ---
 
@@ -44,7 +54,7 @@ npm install @google/generative-ai
 Run a small test to confirm the key is working:
 
 ```bash
-node scripts/generate-ai-comments.js --days 7
+bash scripts/generate-ai-comments.sh --days 7
 ```
 
 Expected output (example):
@@ -76,10 +86,10 @@ To generate comments for all books (~882 books), run the script across multiple 
 
 ```bash
 # Day 1: generate up to the daily limit
-node scripts/generate-ai-comments.js
+bash scripts/generate-ai-comments.sh
 
 # Day 2: resume (already-generated books are skipped automatically)
-node scripts/generate-ai-comments.js
+bash scripts/generate-ai-comments.sh
 ```
 
 ---
@@ -90,10 +100,10 @@ Generate comments for upcoming daily suggestions first, then fill in the rest:
 
 ```bash
 # Generate comments for the next 30 days' featured books
-node scripts/generate-ai-comments.js --days 30
+bash scripts/generate-ai-comments.sh --days 30
 
 # Gradually fill in remaining books
-node scripts/generate-ai-comments.js
+bash scripts/generate-ai-comments.sh
 ```
 
 ---
