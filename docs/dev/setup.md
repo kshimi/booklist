@@ -85,5 +85,5 @@ Open `http://localhost:5173` (or the port shown in terminal) and confirm the boo
 | `npm test` | Run tests |
 | `npm run lint` | Run linter |
 | `node scripts/process.js` | Regenerate `data/books.json` from `data/booklist.csv` |
-| `node scripts/generate-ai-comments.js` | Generate AI recommendation comments (`data/book-ai-comments.json`) |
-| `node scripts/generate-ai-comments.js --days 30` | Generate comments for books featured in the next 30 days |
+| `bash scripts/generate-ai-comments.sh` | Generate AI recommendation comments (`data/book-ai-comments.json`); injects `GEMINI_API_KEY` via 1Password |
+| `bash scripts/generate-ai-comments.sh --days 30` | Generate comments for books featured in the next 30 days |

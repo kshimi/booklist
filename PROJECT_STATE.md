@@ -44,8 +44,8 @@ data/kindle-books.json            ─┘
   data/kindle-list.csv ──→ node scripts/parse-kindle-list.js
 
 data/books.json ──→ node scripts/enrich.js ──→ data/book-metadata.json
-data/books.json ──→ node scripts/generate-ai-comments.js ──→ data/book-ai-comments.json
-                   (要 GEMINI_API_KEY)
+data/books.json ──→ bash scripts/generate-ai-comments.sh ──→ data/book-ai-comments.json
+                   (GEMINI_API_KEY は 1Password から op run で注入)
 ```
 
 ### 補助データファイル
