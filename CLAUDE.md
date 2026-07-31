@@ -98,3 +98,5 @@ npm run build
 | Design Documents | `docs/app/design/` | Per-issue design documents |
 | Functional Spec | `docs/app/spec/functional/` | Functional specifications |
 | Requirements | `docs/requirements/` | Requirements definition |
+| Roadmap | `docs/roadmap.md` | Single source of truth for progress and work-unit tracking |
+| Backlog | `docs/app/backlog.md` | Future feature ideas and known issues not yet filed as Issues |
