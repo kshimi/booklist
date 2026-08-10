@@ -9,14 +9,14 @@
 
 ## 設計書
 
-<!-- 例: docs/app/design/045-feature-x.md -->
-- docs/app/design/
+<!-- 設計書へのリンク。application は docs/app/design/、documentation は docs/plan/ -->
+-
 
-## 仕様書更新範囲
+## ドキュメント更新範囲
 
-<!-- Phase 3 で更新したファイルを列挙。該当なしの場合はその旨を記載 -->
-- docs/app/spec/functional/
-- docs/app/spec/system/
+<!-- Phase 3 で更新した文書を列挙。該当なしの場合はその旨を記載 -->
+<!-- 仕様書に限らない — roadmap・要件書・handover・backlog・索引なども対象 -->
+-
 
 ## 変更内容
 
